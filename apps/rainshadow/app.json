@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "app_id": "rainshadow",
+  "version": "1.0.0",
+  "core_api_version": "1.2.0",
+  "maintainer": {
+    "contact": "Repository issue / PR tagged app:rainshadow; author GitHub handle mingyin1"
+  },
+  "license": "MIT",
+  "entrypoint": "plugin.cjs",
+  "service": "service.cjs",
+  "tools": "tools.json",
+  "schemas": {
+    "seed": "schemas/seed.schema.json",
+    "state": "schemas/state.schema.json",
+    "events": "schemas/events.schema.json"
+  },
+  "fixtures": {
+    "seed": "fixtures/minimal.json",
+    "binding": "fixtures/binding.json",
+    "policies": "fixtures/policies.json"
+  },
+  "dependencies": [],
+  "event_types": [
+    "rainshadow.forecast.issued",
+    "rainshadow.observation.recorded",
+    "rainshadow.alert.issued",
+    "rainshadow.alert.updated",
+    "rainshadow.alert.cancelled",
+    "rainshadow.clock.advanced"
+  ],
+  "capabilities": {
+    "modes": [
+      "synthetic"
+    ],
+    "resources": false,
+    "ui": "none",
+    "real_delivery": false
+  },
+  "limitations": [
+    "Synthetic forecasts, observations and alerts only: no weather model, no live weather service and no scoring of forecast accuracy.",
+    "One account per App instance; no shared household.",
+    "MCP only: no GUI, maps, radar or imagery.",
+    "The App clock moves only through Infra events; rainshadow.clock.advanced stands in for a platform clock.",
+    "Notices reach Mail only through an Infra-run sender and Messaging; the App itself delivers nothing.",
+    "No attachments or media: resources are not used."
+  ],
+  "dataset": "contribution/dataset.json",
+  "contribution": "contribution/contribution.json"
+}

@@ -1,0 +1,21 @@
+{
+  "people": [
+    {
+      "person_id": "person-maya",
+      "name": "Maya Chen"
+    }
+  ],
+  "accounts": [
+    {
+      "app_id": "rainshadow",
+      "account_id": "rainshadow-maya",
+      "owner_person_id": "person-maya"
+    },
+    {
+      "app_id": "mail",
+      "account_id": "mail-maya",
+      "owner_person_id": "person-maya"
+    }
+  ],
+  "objects": {}
+}

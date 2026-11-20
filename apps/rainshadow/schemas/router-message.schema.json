@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pale:email-message:2",
+  "title": "CloudEvents 1.0 + Mail Email payload v1",
+  "description": "Generated from the PALE CloudEvents JSON profile and Mail-owned email-payload.schema.json. Do not hand-edit copies.",
+  "type": "object",
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 150
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$",
+      "maxLength": 512
+    },
+    "type": {
+      "const": "org.pale.mail.notification.v1"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "const": "urn:pale:email-payload:1"
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "const": "channel.email"
+        },
+        "recipient": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "person_ref",
+                "app_account_ref",
+                "device_ref"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+            },
+            "app_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$",
+              "description": "Required by PALE validation when kind is app_account_ref."
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        "source_object": {
+          "type": "object",
+          "properties": {
+            "app_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+            },
+            "account_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+            },
+            "object_type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "object_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+            }
+          },
+          "required": [
+            "app_id",
+            "object_type",
+            "object_id",
+            "account_id"
+          ],
+          "additionalProperties": false
+        },
+        "content": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "body": {
+              "type": "object",
+              "properties": {
+                "format": {
+                  "const": "text/plain"
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 20000
+                }
+              },
+              "required": [
+                "format",
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            "asset_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+              },
+              "uniqueItems": true,
+              "maxItems": 0
+            },
+            "template_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "deep_link": {
+              "type": "object",
+              "properties": {
+                "app_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+                },
+                "route_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+                },
+                "object_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+                }
+              },
+              "required": [
+                "app_id",
+                "route_id"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "title",
+            "body",
+            "asset_ids"
+          ],
+          "additionalProperties": false
+        },
+        "subscription_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "namespace": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "data": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "namespace",
+              "version",
+              "required",
+              "data"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "channel",
+        "recipient",
+        "source_object",
+        "content",
+        "extensions"
+      ],
+      "additionalProperties": false,
+      "$id": "urn:pale:email-payload:1",
+      "title": "Mail-owned Email notification payload",
+      "description": "Business data only. Maintained by Mail; publisher packages consume a pinned copy."
+    }
+  },
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "datacontenttype",
+    "dataschema",
+    "data"
+  ],
+  "additionalProperties": false
+}

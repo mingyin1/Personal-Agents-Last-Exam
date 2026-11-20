@@ -1,0 +1,65 @@
+{
+  "scenario": {
+    "allow": [
+      "rainshadow.places.search",
+      "rainshadow.places.list",
+      "rainshadow.sources.list",
+      "rainshadow.forecast.issuances",
+      "rainshadow.forecast.hourly",
+      "rainshadow.forecast.daily",
+      "rainshadow.conditions.get",
+      "rainshadow.alerts.list",
+      "rainshadow.alerts.get",
+      "rainshadow.watches.list",
+      "rainshadow.watches.get",
+      "rainshadow.notices.list",
+      "rainshadow.preferences.get",
+      "rainshadow.places.update",
+      "rainshadow.alerts.acknowledge",
+      "rainshadow.watches.create",
+      "rainshadow.watches.update",
+      "rainshadow.watches.cancel"
+    ],
+    "constraints": {
+      "rainshadow.places.update": {
+        "ids": [
+          "pl-wren-lake"
+        ],
+        "fields": [
+          "alert_rule"
+        ]
+      },
+      "rainshadow.watches.create": {
+        "ids": [
+          "pl-wren-lake"
+        ]
+      }
+    }
+  },
+  "sandbox": {
+    "allow": [
+      "rainshadow.places.search",
+      "rainshadow.places.list",
+      "rainshadow.sources.list",
+      "rainshadow.forecast.issuances",
+      "rainshadow.forecast.hourly",
+      "rainshadow.forecast.daily",
+      "rainshadow.conditions.get",
+      "rainshadow.alerts.list",
+      "rainshadow.alerts.get",
+      "rainshadow.watches.list",
+      "rainshadow.watches.get",
+      "rainshadow.notices.list",
+      "rainshadow.preferences.get",
+      "rainshadow.places.save",
+      "rainshadow.places.update",
+      "rainshadow.places.remove",
+      "rainshadow.preferences.update",
+      "rainshadow.alerts.acknowledge",
+      "rainshadow.watches.create",
+      "rainshadow.watches.update",
+      "rainshadow.watches.cancel"
+    ],
+    "constraints": {}
+  }
+}

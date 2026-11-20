@@ -1,0 +1,693 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rainshadow incoming events",
+  "description": "Events Infra may apply with env.apply_event. The App clock moves only through these events.",
+  "type": "object",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operation": {
+          "const": "rainshadow.forecast.issued"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "issuance_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "source_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "place_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "issued_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "hourly": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "temp_c": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 60
+                  },
+                  "apparent_temp_c": {
+                    "type": "number",
+                    "minimum": -110,
+                    "maximum": 70
+                  },
+                  "pop": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "precip_mm": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 500
+                  },
+                  "wind_kph": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 400
+                  },
+                  "gust_kph": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 500
+                  },
+                  "thunder_prob": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "sky": {
+                    "enum": [
+                      "clear",
+                      "mostly_clear",
+                      "partly_cloudy",
+                      "mostly_cloudy",
+                      "cloudy",
+                      "fog",
+                      "haze",
+                      "smoke",
+                      "drizzle",
+                      "rain",
+                      "heavy_rain",
+                      "thunderstorm",
+                      "sleet",
+                      "snow"
+                    ]
+                  }
+                },
+                "required": [
+                  "start",
+                  "temp_c",
+                  "apparent_temp_c",
+                  "pop",
+                  "precip_mm",
+                  "wind_kph",
+                  "gust_kph",
+                  "thunder_prob",
+                  "sky"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 240
+            },
+            "daily": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                      },
+                      "headline": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "summary": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 600
+                      },
+                      "high_c": {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 60
+                      },
+                      "low_c": {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 60
+                      },
+                      "pop_day": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "pop_night": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "headline",
+                      "summary",
+                      "high_c",
+                      "low_c",
+                      "pop_day",
+                      "pop_night"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                      },
+                      "aqi": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 500
+                      },
+                      "pollutant": {
+                        "enum": [
+                          "pm25",
+                          "pm10",
+                          "ozone",
+                          "no2",
+                          "so2",
+                          "co"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "aqi"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "maxItems": 16
+            }
+          },
+          "required": [
+            "issuance_id",
+            "source_id",
+            "place_id",
+            "issued_at"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "event_id",
+        "at",
+        "operation",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operation": {
+          "const": "rainshadow.observation.recorded"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "observation_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "place_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "source_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "observed_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "temp_c": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 60
+            },
+            "wind_kph": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 400
+            },
+            "gust_kph": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 500
+            },
+            "conditions": {
+              "enum": [
+                "clear",
+                "mostly_clear",
+                "partly_cloudy",
+                "mostly_cloudy",
+                "cloudy",
+                "fog",
+                "haze",
+                "smoke",
+                "drizzle",
+                "rain",
+                "heavy_rain",
+                "thunderstorm",
+                "sleet",
+                "snow"
+              ]
+            },
+            "humidity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "observation_id",
+            "place_id",
+            "source_id",
+            "observed_at",
+            "temp_c",
+            "wind_kph",
+            "gust_kph",
+            "conditions"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "event_id",
+        "at",
+        "operation",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operation": {
+          "const": "rainshadow.alert.issued"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "alert_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "source_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "category": {
+              "enum": [
+                "flood",
+                "storm",
+                "winter",
+                "wind",
+                "temperature",
+                "fire",
+                "air_quality",
+                "other"
+              ]
+            },
+            "zone_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+              },
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true
+            },
+            "message": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                "type": {
+                  "const": "alert"
+                },
+                "sent_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "event": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "severity": {
+                  "enum": [
+                    "minor",
+                    "moderate",
+                    "severe",
+                    "extreme"
+                  ]
+                },
+                "urgency": {
+                  "enum": [
+                    "immediate",
+                    "expected",
+                    "future",
+                    "past",
+                    "unknown"
+                  ]
+                },
+                "certainty": {
+                  "enum": [
+                    "observed",
+                    "likely",
+                    "possible",
+                    "unlikely",
+                    "unknown"
+                  ]
+                },
+                "onset": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "ends": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "headline": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "instruction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "message_id",
+                "type",
+                "sent_at",
+                "event",
+                "severity",
+                "urgency",
+                "certainty",
+                "onset",
+                "ends",
+                "headline",
+                "description"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "alert_id",
+            "source_id",
+            "category",
+            "zone_ids",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "event_id",
+        "at",
+        "operation",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operation": {
+          "const": "rainshadow.alert.updated"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "alert_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "message": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                "type": {
+                  "const": "update"
+                },
+                "sent_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "event": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "severity": {
+                  "enum": [
+                    "minor",
+                    "moderate",
+                    "severe",
+                    "extreme"
+                  ]
+                },
+                "urgency": {
+                  "enum": [
+                    "immediate",
+                    "expected",
+                    "future",
+                    "past",
+                    "unknown"
+                  ]
+                },
+                "certainty": {
+                  "enum": [
+                    "observed",
+                    "likely",
+                    "possible",
+                    "unlikely",
+                    "unknown"
+                  ]
+                },
+                "onset": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "ends": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "headline": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "instruction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "message_id",
+                "type",
+                "sent_at",
+                "event",
+                "severity",
+                "urgency",
+                "certainty",
+                "onset",
+                "ends",
+                "headline",
+                "description"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "alert_id",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "event_id",
+        "at",
+        "operation",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operation": {
+          "const": "rainshadow.alert.cancelled"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "alert_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "message": {
+              "type": "object",
+              "properties": {
+                "message_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                "type": {
+                  "const": "cancel"
+                },
+                "sent_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "headline": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                }
+              },
+              "required": [
+                "message_id",
+                "type",
+                "sent_at",
+                "headline",
+                "description"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "alert_id",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "event_id",
+        "at",
+        "operation",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operation": {
+          "const": "rainshadow.clock.advanced"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "event_id",
+        "at",
+        "operation",
+        "payload"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

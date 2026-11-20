@@ -1,0 +1,16 @@
+{
+  "name": "pale-app-rainshadow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rainshadow: synthetic weather forecasts, alerts and personal weather watches for PALE",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test tests/business.test.cjs",
+    "example": "node examples/run.cjs",
+    "check:fixture": "node dev/check-fixture.cjs",
+    "check:contracts": "node dev/build.cjs --check"
+  },
+  "license": "MIT"
+}

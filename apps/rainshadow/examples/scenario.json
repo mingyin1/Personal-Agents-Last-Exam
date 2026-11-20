@@ -1,0 +1,112 @@
+{
+  "event_id": "example-forecast-2030",
+  "at": "2026-11-20T20:30:00-07:00",
+  "operation": "rainshadow.forecast.issued",
+  "payload": {
+    "issuance_id": "iss-pfo-wren-4",
+    "source_id": "src-pfo",
+    "place_id": "pl-wren-lake",
+    "issued_at": "2026-11-20T20:30:00-07:00",
+    "hourly": [
+      {
+        "start": "2026-11-21T09:00:00-07:00",
+        "temp_c": 8.5,
+        "apparent_temp_c": 7.9,
+        "pop": 15,
+        "precip_mm": 0,
+        "wind_kph": 9,
+        "gust_kph": 15,
+        "thunder_prob": 0,
+        "sky": "partly_cloudy"
+      },
+      {
+        "start": "2026-11-21T10:00:00-07:00",
+        "temp_c": 10.5,
+        "apparent_temp_c": 10,
+        "pop": 20,
+        "precip_mm": 0,
+        "wind_kph": 10,
+        "gust_kph": 17,
+        "thunder_prob": 5,
+        "sky": "partly_cloudy"
+      },
+      {
+        "start": "2026-11-21T11:00:00-07:00",
+        "temp_c": 12.5,
+        "apparent_temp_c": 12,
+        "pop": 30,
+        "precip_mm": 0.3,
+        "wind_kph": 11,
+        "gust_kph": 20,
+        "thunder_prob": 10,
+        "sky": "mostly_cloudy"
+      },
+      {
+        "start": "2026-11-21T12:00:00-07:00",
+        "temp_c": 14,
+        "apparent_temp_c": 13,
+        "pop": 45,
+        "precip_mm": 0.4,
+        "wind_kph": 12,
+        "gust_kph": 24,
+        "thunder_prob": 10,
+        "sky": "mostly_cloudy"
+      },
+      {
+        "start": "2026-11-21T13:00:00-07:00",
+        "temp_c": 13.6,
+        "apparent_temp_c": 12.6,
+        "pop": 55,
+        "precip_mm": 1.1,
+        "wind_kph": 15,
+        "gust_kph": 30,
+        "thunder_prob": 25,
+        "sky": "rain"
+      },
+      {
+        "start": "2026-11-21T14:00:00-07:00",
+        "temp_c": 12.8,
+        "apparent_temp_c": 11.6,
+        "pop": 65,
+        "precip_mm": 1.4,
+        "wind_kph": 18,
+        "gust_kph": 36,
+        "thunder_prob": 30,
+        "sky": "thunderstorm"
+      },
+      {
+        "start": "2026-11-21T15:00:00-07:00",
+        "temp_c": 11.5,
+        "apparent_temp_c": 10.1,
+        "pop": 75,
+        "precip_mm": 1.7,
+        "wind_kph": 21,
+        "gust_kph": 42,
+        "thunder_prob": 35,
+        "sky": "thunderstorm"
+      },
+      {
+        "start": "2026-11-21T16:00:00-07:00",
+        "temp_c": 10.2,
+        "apparent_temp_c": 8.6,
+        "pop": 80,
+        "precip_mm": 1.8,
+        "wind_kph": 23,
+        "gust_kph": 47,
+        "thunder_prob": 40,
+        "sky": "thunderstorm"
+      }
+    ],
+    "daily": [
+      {
+        "date": "2026-11-21",
+        "headline": "Strong storms, 80%",
+        "summary": "Storms develop by early afternoon.",
+        "high_c": 14,
+        "low_c": 6,
+        "pop_day": 80,
+        "pop_night": 85
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": "pale.dataset.v1",
+  "dataset_id": "rainshadow-minimal",
+  "version": "1.0.0",
+  "description": "Synthetic Rainshadow fixture: an invented two-region world with three days of forecasts, observations, alerts and one account. For package validation and examples; not an evaluation task.",
+  "record_source_ids": [
+    "scripted-history"
+  ],
+  "sources": [
+    {
+      "source_id": "scripted-history",
+      "kind": "synthetic",
+      "description": "Scripted synthetic history. Forecast numbers come from a closed-form toy model; alerts, places, people and account activity are invented. The history is replayed through the App's own business functions, so notices, watch evaluations and the activity log follow the App rules. No external collection, no observed weather.",
+      "uri": null,
+      "license": "MIT",
+      "usage": "permitted",
+      "collection": null,
+      "generation": {
+        "method": "deterministic script, no random numbers",
+        "tool": "apps/rainshadow/dev/build-fixture.cjs",
+        "tool_version": "1",
+        "seed": null,
+        "parameters": {
+          "regions": 2,
+          "time_zones": [
+            "America/Denver",
+            "America/Los_Angeles"
+          ],
+          "places": 6,
+          "zones": 8,
+          "sources": 3,
+          "weather_issuances": 36,
+          "air_quality_issuances": 18,
+          "observations": 12,
+          "alert_threads": 6,
+          "clock": "2026-11-20T20:00:00-07:00"
+        }
+      }
+    }
+  ],
+  "transformations": [
+    "None: records are stored exactly as the script produces them."
+  ],
+  "expected_counts": {
+    "records": 100,
+    "assets": 0
+  },
+  "quality_policy": {
+    "duplicate_records": "reject",
+    "duplicate_assets": "reject",
+    "missing_assets": "allow_declared"
+  },
+  "review": {
+    "status": "pending",
+    "reviewer": null,
+    "notes": "Automated checks (seed rules, dev/check-fixture.cjs) do not replace human review of realism: forecast numbers, alert and notice wording, and that every place and organization name is fictional."
+  }
+}
