@@ -37,6 +37,7 @@ const alertIssued = (id, when, fields = {}, thread = {}) => ({
 const alertUpdated = (id, n, when, fields = {}) => ({ event_id: 'ev-' + id + '-m' + n, at: when, operation: 'rainshadow.alert.updated', payload: { alert_id: id, message: message(id + '-m' + n, 'update', when, fields) } });
 const alertCancelled = (id, n, when) => ({ event_id: 'ev-' + id + '-m' + n, at: when, operation: 'rainshadow.alert.cancelled', payload: { alert_id: id, message: { message_id: id + '-m' + n, type: 'cancel', sent_at: when, headline: 'Flood Watch cancelled', description: 'The threat has ended.' } } });
 const notices = app => app.call('notices.list', { limit: 100 }).notices;
+const scenarioWire = () => { const app = fixture(); app.event(scenario()); return app.data.notices.at(-1).wire; };
 const actions = (app, from = 0) => app.data.activity.slice(from).map(a => a.actor + ':' + a.action + ':' + a.object_id);
 
 test('T01 [W1] search, save, update label and rule, list; duplicate and unknown IDs', () => {
@@ -550,6 +551,12 @@ test('T17 [all] Core contracts on the public runtime (real MCP)', t => {
   assert.equal(run.status, 0, run.stdout + run.stderr);
 });
 
+test('T15b [W4] Rainshadow -> Mail through Messaging on the public runtime (real MCP)', t => {
+  if (!publicRuntime() || !fs.existsSync(path.join(publicRuntime(), '../examples/apps/mail/app.json'))) return t.skip('public runtime with the Mail reference App not present in this copy; run tests/mail.integration.cjs from the checkout');
+  const run = spawnSync(process.execPath, [path.join(__dirname, 'mail.integration.cjs')], { encoding: 'utf8', timeout: 120000 });
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+});
+
 test('T18 [all] seed validation failures; one activity row per write, event and timer effect', () => {
   const app = fixture(), bad = change => { const seed = seedCopy(); change(seed); assert.throws(() => plugin.validateSeed(app.ctx, seed), { code: 'invalid_seed' }); };
   plugin.validateSeed(app.ctx, seedCopy());
@@ -631,7 +638,11 @@ test('contracts, fixture and declarations are in step', () => {
   assert.deepEqual([tools.filter(t => t.read_only).length, tools.filter(t => !t.read_only).length], [13, 8]);
   assert.deepEqual(declared.events.accepts.map(e => e.type), manifest.event_types);
   assert.deepEqual(declared.messaging.receives, []);
-  assert.deepEqual(declared.messaging.publishes.map(p => [p.channel, p.schema_id]), [['channel.email', 'urn:pale:email-message:2']]);
+  assert.deepEqual(declared.messaging.publishes.map(p => [p.channel, p.schema_id, p.status]), [['channel.email', 'urn:pale:email-message:2', 'implemented']]);
+  const wire = scenarioWire();
+  assert.deepEqual([wire.specversion, wire.id, wire.source, wire.type, wire.dataschema, wire.time, wire.data.channel, wire.data.recipient, wire.data.source_object, wire.data.subscription_ref, wire.data.content.asset_ids],
+    ['1.0', 'ntc-0009', 'urn:pale:app:rainshadow:account:rainshadow-maya', 'org.pale.mail.notification.v1', 'urn:pale:email-payload:1', at(FRI, '20:30'), 'channel.email', { kind: 'person_ref', id: 'person-maya' },
+      { app_id: 'rainshadow', account_id: 'rainshadow-maya', object_type: 'watch', object_id: 'w-0002' }, 'rainshadow-maya:pl-wren-lake', []]);
   assert.equal(require('../fixtures/clock.json').initial_time, builder.CLOCK);
   assert.equal(require('../contribution/dataset.json').expected_counts.records, plugin.records(seedCopy()).length);
   const event = scenario();

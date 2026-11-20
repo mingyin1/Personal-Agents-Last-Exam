@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "registry": "examples/registry.mail.json",
+  "publishers": [
+    {
+      "app_id": "rainshadow",
+      "account_id": "rainshadow-maya",
+      "owner_person_id": "person-maya",
+      "package_root": "apps/rainshadow",
+      "contribution_ref": "contribution/contribution.json",
+      "allowed_recipients": [
+        {
+          "app_id": "mail",
+          "account_id": "mail-maya",
+          "channel": "channel.email"
+        }
+      ]
+    }
+  ],
+  "authentication": {
+    "mode": "trusted-stdio"
+  }
+}

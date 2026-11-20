@@ -256,7 +256,7 @@
         "channel": "channel.email",
         "schema_id": "urn:pale:email-message:2",
         "schema_ref": "schemas/router-message.schema.json",
-        "status": "declared",
+        "status": "implemented",
         "event_type": "org.pale.mail.notification.v1",
         "payload_schema_id": "urn:pale:email-payload:1"
       }

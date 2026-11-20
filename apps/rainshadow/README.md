@@ -2,7 +2,7 @@
 
 Rainshadow is a synthetic weather App for PALE: forecasts that always name their source and issue time, alerts that are message threads, and a personal layer of saved places, alert rules and weather watches. It follows the approved Environment proposal `proposals/environment/rainshadow.md`. All data is invented; there is no weather model and no live service.
 
-Status: work in progress on the first version. Business behavior for all four workflows and the six events is implemented and covered by `npm test`; the Mail sender script and the evidence report are still to come (see "Not done yet").
+Status: first version, implemented ahead of plan approval. All four workflows, the six events, the optional Mail notices and the tests are in place; the evidence report for implementation review is still to be written (see "Not done yet").
 
 ## Run locally
 
@@ -18,8 +18,11 @@ From the repository root, against the public reference runtime:
 
 ```sh
 npm run app:verify -- --app apps/rainshadow --output .artifacts/rainshadow.json
-node apps/rainshadow/tests/mcp.integration.cjs
+node apps/rainshadow/tests/mcp.integration.cjs      # every tool and the Core contracts through real MCP
+node apps/rainshadow/tests/mail.integration.cjs     # Rainshadow -> Messaging -> real Mail
 ```
+
+Inside the public checkout `npm test` also runs the two integration scripts (T17, T15b). A standalone copy of the package skips them and says so.
 
 ## What it does
 
@@ -53,10 +56,22 @@ Incoming events, applied by Infra with `env.apply_event`: `rainshadow.forecast.i
 
 ## Other Apps
 
-No App is required. Mail is optional and send-only: when `preferences.email_notices` is on, each released notice also carries the full wire message for Mail's existing receive declaration (`channel.email`, `urn:pale:email-message:2`, see `schemas/router-message.schema.json`, a copy of Mail's schema). Rainshadow builds no inbox and never writes to another App.
+No App is required. Mail is optional and send-only. When `preferences.email_notices` is on, each released notice also carries the full wire message for Mail's existing receive declaration (Mail 1.3.0: `channel.email`, wire `urn:pale:email-message:2`, payload `urn:pale:email-payload:1`, type `org.pale.mail.notification.v1`). `schemas/router-message.schema.json` is a copy of Mail's wire schema; Messaging compares the two by content. Rainshadow builds no inbox and never writes to another App.
+
+Delivery is Infra's. `infra/sender.cjs` is an Infra-run script, not part of the App and never given to the Agent. It reads released notices through `env.snapshot` and calls `router.publish` for each stored wire message:
+
+```sh
+node apps/rainshadow/infra/sender.cjs --config apps/rainshadow/infra/router.config.example.json --run RUN --state-dir DIR
+```
+
+- The config names this package as the publisher and grants the bound Mail account for `channel.email`. Without a grant the delivery is rejected and Mail gets no record.
+- Only notices released after the loaded baseline time are sent; notices that came with the seed are history.
+- The sender never writes into Rainshadow. A rejected or unknown delivery does not roll anything back; Messaging stops the run on an unknown acknowledgement.
+- Messaging deduplicates in one router session. After `env.reset` of Rainshadow, start Messaging with a new run, because notice IDs start again.
+
+`tests/mail.integration.cjs` checks this with the real Mail package: the committed receipt, the message the Mail Agent reads, an identical retry, changed content, a forged source, a missing grant, and that Rainshadow's state is identical before and after dispatch.
 
 ## Not done yet
 
-- The Infra-run sender script that publishes released notices through Messaging, and its Rainshadow → Mail integration test. Until then the `channel.email` publish declaration is marked `declared`, not `implemented`.
-- The workflow-to-test mapping and reproducible evidence report for implementation review.
+- The workflow-to-test mapping and the reproducible evidence report for implementation review.
 - Human review of realism (forecast numbers, alert and notice wording) and of the invented names.
