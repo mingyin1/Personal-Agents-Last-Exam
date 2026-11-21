@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "properties": {
+    "bundle": {
+      "$ref": "bundle.schema.json"
+    },
+    "quality": {
+      "$ref": "quality.schema.json"
+    }
+  },
+  "required": [
+    "bundle",
+    "quality"
+  ],
+  "additionalProperties": false
+}

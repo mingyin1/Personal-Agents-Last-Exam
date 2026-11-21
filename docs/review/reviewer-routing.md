@@ -2,6 +2,8 @@
 
 New Environment and Task proposal PRs receive one review request automatically. The workflow runs on creation, edits, new commits, reopening and Ready for review, with an hourly reconciliation and a manual **Run workflow** option. Each run also picks up eligible open proposals missed by an earlier event.
 
+**Owner exception:** PRs authored by DavidZWZ (verified GitHub ID `57624585`) are self-managed and do not receive automatic reviewer requests. DavidZWZ can review and accept their own changes; no external reviewer is required. Explicitly requested optional reviews are preserved. All other authors retain the routing below. The live index identifies owner review separately from the external-review backlog.
+
 ## Domain owners
 
 The proposal file's **Primary domain** selects the owner. Secondary domains provide context and do not create extra review requests.

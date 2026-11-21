@@ -1,0 +1,166 @@
+{
+  "schema": "pale.runtime-time-evidence.v1",
+  "checked_at": "2026-11-19T05:54:26.150Z",
+  "runtime_version": "1.6.0",
+  "core_api_version": "1.2.0",
+  "passed": true,
+  "scope": "Infra-only clock primitive and caller contract; external Infra orchestration is not implemented or certified here.",
+  "matrices": [
+    {
+      "node": "v18.20.8",
+      "passed": true,
+      "full_suite_stages": 22,
+      "clock_unit_cases": 7,
+      "session_mcp_assertions": 44
+    },
+    {
+      "node": "v22.14.0",
+      "passed": true,
+      "full_suite_stages": 22,
+      "clock_unit_cases": 7,
+      "session_mcp_assertions": 44
+    }
+  ],
+  "source_sha256": {
+    "runtime/core/runtime.cjs": "3263979ea02ff952e3657dc1d46cbc3fefb776bffaa6b26019a79c17d330966d",
+    "runtime/core/admin-tools.cjs": "a3e4708bcd4eb27f76f630f7b133499bbf5d9d2f71f7b5eec4d9e0562b10e216",
+    "runtime/core/contribution.cjs": "5b8fd6a604c8c30162b6b10073be1a08fd69d5e61efcab36b8da64707cad766d",
+    "runtime/core/helpers.cjs": "9f7372da87a943140b1d9d295a5035179f456d379a812110a07fad92fd765c0d",
+    "runtime/core/assets.cjs": "982e7d9462e03d83d9be287b65751b02ecaf5ecfd49ea78347a87c880f09bfd9",
+    "runtime/tests/clock.test.cjs": "51d8608bcbfe40da4cb361510c0769eb79b4e44661c316b59b3b432d5ee1cdaf",
+    "examples/workflows/session-time/run.cjs": "d083fae2a31b13359de4c94cd59bbc9e385c3aba8d313b7df86183425d6fd361"
+  },
+  "independent_base": {
+    "commit": "718a4cbc7709dee22bf1e4ad1cff984550d7e519",
+    "apps": [
+      "calendar",
+      "contacts",
+      "files",
+      "mail",
+      "messages",
+      "notes",
+      "tasks"
+    ],
+    "passed": true,
+    "scope": "Unmodified App packages, not support for the new host operation."
+  },
+  "app_packages_unchanged_since": "3c91dba634889bdf5e31a4c7def63eb4dde4f7f1",
+  "browser": {
+    "passed": true,
+    "checks": 109,
+    "evidence": "personal-apps-gui.json"
+  },
+  "example": {
+    "passed": true,
+    "checks": 44,
+    "runtime_version": "1.6.0",
+    "node": "v22.14.0",
+    "session1": "2026-10-26T19:40:00-07:00",
+    "session3": "2026-10-29T12:00:00-07:00",
+    "clock_receipts": [
+      {
+        "app": "mail",
+        "status": "committed",
+        "request_id": "session-3",
+        "previous_virtual_now": "2026-10-26T19:40:00-07:00",
+        "virtual_now": "2026-10-29T12:00:00-07:00",
+        "advanced": true,
+        "app_id": "mail",
+        "version": {
+          "epoch": 3,
+          "revision": 1
+        }
+      },
+      {
+        "app": "calendar",
+        "status": "committed",
+        "request_id": "session-3",
+        "previous_virtual_now": "2026-10-27T09:05:00-07:00",
+        "virtual_now": "2026-10-29T12:00:00-07:00",
+        "advanced": true,
+        "app_id": "calendar",
+        "version": {
+          "epoch": 3,
+          "revision": 2
+        }
+      }
+    ],
+    "sent_at": "2026-10-29T12:00:00-07:00",
+    "clock_audit": {
+      "seq": 4,
+      "actor": "infra",
+      "tool": "env.advance_time",
+      "decision": "allow",
+      "before": {
+        "epoch": 3,
+        "revision": 0
+      },
+      "after": {
+        "epoch": 3,
+        "revision": 1
+      },
+      "state_changed": true,
+      "received_at": "2026-11-19T05:53:39.658Z",
+      "wall_time": "2026-11-19T05:53:39.658Z",
+      "virtual_time": "2026-10-29T12:00:00-07:00",
+      "clock": {
+        "request_id": "session-3",
+        "from": "2026-10-26T19:40:00-07:00",
+        "requested": "2026-10-29T12:00:00-07:00",
+        "to": "2026-10-29T12:00:00-07:00"
+      },
+      "connection_id": "41d16096-2742-4fb1-a34e-250db66913db",
+      "client_name": "session-time-example",
+      "input": {
+        "request_id": "session-3",
+        "expected_version": {
+          "epoch": 3,
+          "revision": 0
+        }
+      },
+      "result": {
+        "status": "committed",
+        "object_id": null
+      }
+    },
+    "delivery": {
+      "received_at": "2026-11-19T05:53:40.037Z",
+      "status": "committed",
+      "run_id": "session-clock",
+      "source_app": "delivery",
+      "channel": "channel.email",
+      "target": {
+        "app_id": "mail",
+        "account_id": "mail-maya"
+      },
+      "cloud_event": {
+        "source": "urn:pale:app:delivery:account:delivery-maya",
+        "id": "session-time-notice",
+        "type": "org.pale.mail.notification.v1",
+        "time": "2026-10-26T19:00:00-07:00"
+      },
+      "event_id": "router-2d25615b7f98a0f7a8c0cc7c8066a1d3",
+      "version": {
+        "epoch": 3,
+        "revision": 5
+      },
+      "applied_at": "2026-10-29T12:05:00-07:00",
+      "committed_at": "2026-11-19T05:53:40.080Z",
+      "receiver_trace": {
+        "run_id": "session-clock",
+        "app_id": "mail",
+        "event_id": "router-2d25615b7f98a0f7a8c0cc7c8066a1d3",
+        "cloud_event": {
+          "source": "urn:pale:app:delivery:account:delivery-maya",
+          "id": "session-time-notice",
+          "type": "org.pale.mail.notification.v1",
+          "time": "2026-10-26T19:00:00-07:00"
+        },
+        "received_at": "2026-11-19T05:53:40.057Z",
+        "virtual_received_at": "2026-10-29T12:05:00-07:00",
+        "applied_at": "2026-10-29T12:05:00-07:00",
+        "processed_at": "2026-11-19T05:53:40.058Z"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "event_id": "notes-change-1",
+  "at": "2026-11-18T09:05:00-08:00",
+  "operation": "notes.upsert",
+  "payload": {
+    "id": "note-groceries",
+    "account_id": "notes-maya",
+    "created_at": "2026-11-17T08:00:00-08:00",
+    "updated_at": "2026-11-18T09:05:00-08:00",
+    "history": [
+      {
+        "at": "2026-11-17T08:00:00-08:00",
+        "action": "seeded"
+      },
+      {
+        "at": "2026-11-18T09:05:00-08:00",
+        "action": "scenario_update"
+      }
+    ],
+    "title": "Dinner preferences",
+    "body": "Vegetarian dinner for four. Check pantry before buying. (updated by scenario)",
+    "tags": [
+      "home"
+    ],
+    "pinned": true,
+    "archived": false,
+    "trashed": false,
+    "attachments": [],
+    "revisions": []
+  }
+}

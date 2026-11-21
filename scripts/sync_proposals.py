@@ -16,6 +16,11 @@ from urllib.error import HTTPError
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
+try:
+    from .review_identity import can_self_review
+except ImportError:
+    from review_identity import can_self_review
+
 INDEX_PATH = "proposals/proposal-list.md"
 INDEX_BRANCH = "proposal-index"
 MAX_PROPOSAL_BYTES = 200_000
@@ -213,6 +218,7 @@ def proposal_text(api, pr, kind):
 
 def collect(api, domain_names, branch):
     records = []
+    rules = json.loads(Path(__file__).resolve().parents[1].joinpath(".github/review-policy.json").read_text())
     for summary in api.pages(f"/repos/{api.repository}/pulls", state="all", base=branch, sort="created", direction="desc"):
         kind = track(summary)
         if kind is None:
@@ -237,6 +243,8 @@ def collect(api, domain_names, branch):
         title = (field(text, "Reference app or website / URL") if kind == "environment" else field(text, "Short task title"))
         title = title or (named[3] if named else pr.get("title", ""))
         review, changes = review_state(list(api.pages(f"/repos/{api.repository}/pulls/{pr['number']}/reviews")), pr)
+        if review == "Awaiting review" and can_self_review(pr["user"]["login"], pr["user"].get("id"), rules):
+            review = "Owner review; no external reviewer required"
         lifecycle = {}
         if labels(pr) & {"plan-approved", "plan-needs-review", "in-progress", "validation", "ready-to-merge", "v1-overdue"}:
             try:

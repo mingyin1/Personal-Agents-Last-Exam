@@ -4,7 +4,7 @@ class Client{
  constructor(app,role,run,stateDir,clientName='pale-local-driver',options={}){
   this.clientName=clientName;this.closed=false;
   this.seq=0;this.pending=new Map();this.errors='';
-  this.child=spawn(process.execPath,options.commandArgs||[options.service||path.join(__dirname,'mcp-server.cjs'),'--app',app,'--role',role,'--run',run,'--state-dir',stateDir,...(options.registry?['--registry',options.registry]:[]),...(options.assembly?['--assembly',options.assembly]:[])],{stdio:['pipe','pipe','pipe']});
+  this.child=spawn(process.execPath,options.commandArgs||[options.service||path.join(__dirname,'mcp-server.cjs'),'--app',app,'--role',role,'--run',run,'--state-dir',stateDir,...(options.registry?['--registry',options.registry]:[]),...(options.assembly?['--assembly',options.assembly]:[]),...(options.initialProfile?['--initial-profile',options.initialProfile]:[])],{stdio:['pipe','pipe','pipe']});
   this.child.stderr.on('data',b=>{this.errors+=b;});
   readline.createInterface({input:this.child.stdout}).on('line',line=>{const m=JSON.parse(line),p=this.pending.get(m.id);if(!p&&m.id===null&&m.error){for(const item of this.pending.values()){clearTimeout(item.timer);item.reject(new Error('MCP transport error: '+m.error.message));}this.pending.clear();return;}if(p){clearTimeout(p.timer);this.pending.delete(m.id);p.resolve(m);}});
   const fail=()=>{this.closed=true;for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('Server exited: '+this.errors));}this.pending.clear();};

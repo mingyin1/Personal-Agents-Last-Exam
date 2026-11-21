@@ -1,0 +1,13 @@
+{
+  "read": {
+    "name": "notes.list",
+    "args": {}
+  },
+  "write": {
+    "name": "notes.create",
+    "args": {
+      "title": "Runtime note",
+      "body": "Created by MCP"
+    }
+  }
+}

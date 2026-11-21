@@ -7,6 +7,6 @@ const overlap=(a,b)=>Date.parse(a.start)<Date.parse(b.end)&&Date.parse(b.start)<
 const text=(v,max=10000)=>typeof v==='string'&&v.trim().length>0&&v.length<=max;
 const freeze=o=>{if(o&&typeof o==='object'){Object.freeze(o);for(const v of Object.values(o))freeze(v);}return o;};
 function references(ctx,data){
- if(!ctx.binding.people.some(p=>p.person_id===data.owner_person_id)||!ctx.binding.accounts.some(a=>a.app_id===ctx.app_id&&a.account_id===data.account_id&&a.owner_person_id===data.owner_person_id))fail('invalid_seed','账户和人员必须在可信 binding 中声明。');
+ if(!ctx.binding.people.some(p=>p.person_id===data.owner_person_id)||!ctx.binding.accounts.some(a=>a.app_id===ctx.app_id&&a.account_id===data.account_id&&a.owner_person_id===data.owner_person_id))fail('invalid_seed','Accounts and people must be declared in the trusted binding.');
 }
 module.exports={copy,version,fail,range,overlap,text,freeze,references};

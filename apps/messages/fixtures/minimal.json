@@ -1,0 +1,40 @@
+{
+  "account_id": "messages-maya",
+  "owner_person_id": "person-maya",
+  "messages": [
+    {
+      "id": "msg-dinner",
+      "account_id": "messages-maya",
+      "created_at": "2026-11-17T08:00:00-08:00",
+      "updated_at": "2026-11-17T08:00:00-08:00",
+      "history": [
+        {
+          "at": "2026-11-17T08:00:00-08:00",
+          "action": "seeded"
+        }
+      ],
+      "conversation_id": "conversation-home",
+      "author_person_id": "person-alex",
+      "text": "Can you check the pantry before ordering?",
+      "sent_at": "2026-11-17T08:00:00-08:00",
+      "received_at": "2026-11-17T08:00:00-08:00",
+      "read_by": [
+        "person-alex"
+      ],
+      "retracted": false,
+      "attachments": [],
+      "edits": []
+    }
+  ],
+  "conversations": [
+    {
+      "id": "conversation-home",
+      "title": "Household",
+      "participant_ids": [
+        "person-maya",
+        "person-alex"
+      ],
+      "archived": false
+    }
+  ]
+}

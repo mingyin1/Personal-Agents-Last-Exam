@@ -1,0 +1,266 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "pale.dataset.v1"
+    },
+    "dataset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "record_source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "synthetic",
+              "collected",
+              "reused",
+              "unspecified"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uri": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "license": {
+            "type": "string",
+            "minLength": 1
+          },
+          "usage": {
+            "enum": [
+              "permitted",
+              "review_required"
+            ]
+          },
+          "collection": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "collected_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "method",
+                  "collected_at"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "generation": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "tool": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "tool_version": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "seed": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "parameters": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "method",
+                  "tool",
+                  "tool_version",
+                  "seed",
+                  "parameters"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "source_id",
+          "kind",
+          "description",
+          "uri",
+          "license",
+          "usage",
+          "collection",
+          "generation"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "transformations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "expected_counts": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "assets": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "records",
+        "assets"
+      ],
+      "additionalProperties": false
+    },
+    "quality_policy": {
+      "type": "object",
+      "properties": {
+        "duplicate_records": {
+          "enum": [
+            "reject",
+            "allow"
+          ]
+        },
+        "duplicate_assets": {
+          "enum": [
+            "reject",
+            "allow"
+          ]
+        },
+        "missing_assets": {
+          "enum": [
+            "reject",
+            "allow_declared"
+          ]
+        }
+      },
+      "required": [
+        "duplicate_records",
+        "duplicate_assets",
+        "missing_assets"
+      ],
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "pending",
+            "approved",
+            "not_applicable"
+          ]
+        },
+        "reviewer": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "status",
+        "reviewer",
+        "notes"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "version",
+    "description",
+    "record_source_ids",
+    "sources",
+    "transformations",
+    "expected_counts",
+    "quality_policy",
+    "review"
+  ],
+  "additionalProperties": false
+}

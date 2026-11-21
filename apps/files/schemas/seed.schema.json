@@ -1,0 +1,141 @@
+{
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+    },
+    "owner_person_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "action": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                }
+              },
+              "required": [
+                "at",
+                "action"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 1000
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^[^/\\\\\\u0000-\\u001f]+$"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "file",
+              "folder"
+            ]
+          },
+          "trashed": {
+            "type": "boolean"
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "asset_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 1000
+                }
+              },
+              "required": [
+                "number",
+                "asset_id",
+                "at",
+                "source"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "created_at",
+          "updated_at",
+          "history",
+          "name",
+          "parent_id",
+          "kind",
+          "trashed",
+          "versions"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 1000
+    }
+  },
+  "required": [
+    "account_id",
+    "owner_person_id",
+    "files"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pale:files:seed:1"
+}

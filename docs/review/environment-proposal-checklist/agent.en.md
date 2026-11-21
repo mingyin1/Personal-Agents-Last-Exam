@@ -275,13 +275,13 @@ Guide: “Attribute platform dependencies correctly instead of calling them cont
 
 #### D7.1 · Required versus optional dependencies
 
-- **What to check:** First enumerate which personal Apps each workflow needs, including separate Agent tool calls; also enumerate other App connections. Check whether the required App and operation actually exist at the reviewed revision, not merely whether the proposal names them.
+- **What to check:** First enumerate which personal Apps each workflow needs, including separate Agent tool calls; also enumerate other App connections. Check whether the required App and operation actually exist at the reviewed revision, not merely whether the proposal names them. Confirm the package runs independently with only its own files, the pinned shared runtime and declared dependencies.
 - **Look at:** §3 Internal personal apps; Other apps and websites; §4 App integrations; License and external dependencies.
-- **✓ Approve:** Each dependency is required or optional for a named workflow, links the reviewed package and exact public interface/version, and has the needed implemented capability. A planned capability is explicitly bounded by an owner, sequence and feasible fallback or scope exclusion. Run-time external services are replayed or controlled; an optional App integration may still be required by a particular linked Task.
-- **◐ Partial approve:** Dependencies lack scope/version links, an App exists but the needed operation is unverified, or a capability gap has no clear owner/fallback yet. Shared IDs do not establish a Contacts implementation; test fixtures do not establish a production Messages App.
+- **✓ Approve:** Each dependency is required or optional for a named workflow, links the reviewed package and exact public interface/version, and has the needed implemented capability. A planned capability is explicitly bounded by an owner, sequence and feasible fallback or scope exclusion. Run-time external services are replayed or controlled; an optional App integration may still be required by a particular linked Task. The proposal states the standalone package boundary and its declared dependencies.
+- **◐ Partial approve:** Dependencies lack scope/version links, an App exists but the needed operation is unverified, a capability gap has no clear owner/fallback yet, or the standalone package boundary is missing. Ask the author to supply missing information rather than reject for omission alone. Shared IDs do not establish a Contacts implementation; test fixtures do not establish a production Messages App.
 - **? Human judge:** Whether a dependency should be required, a new receiver should be built, or an adapter/fallback is acceptable needs a maintainer/platform decision.
-- **✗ Reject:** A required capability that does not exist is treated as available.
-- **Source:** Guide · Dependencies and effort; Integration expectations; PR #12 docs/app-integrations.md
+- **✗ Reject:** A required capability that does not exist is treated as available, or the design requires undeclared dependencies, hard-coded repository-relative paths outside the package, or access to another App's private implementation or state. A pinned shared runtime and declared dependencies used through public interfaces are allowed.
+- **Source:** Guide · Dependencies and effort; Integration expectations; PR #12 docs/app-integrations.md; docs/review/app-implementation.md (Package and contract)
 
 #### D7.2 · Owners and sequence
 

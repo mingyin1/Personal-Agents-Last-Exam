@@ -1,0 +1,24 @@
+{
+  "people": [
+    {
+      "person_id": "person-maya",
+      "name": "Maya Chen"
+    },
+    {
+      "person_id": "person-alex",
+      "name": "Alex Rivera"
+    }
+  ],
+  "accounts": [
+    {
+      "app_id": "contacts",
+      "account_id": "contacts-maya",
+      "owner_person_id": "person-maya"
+    }
+  ],
+  "objects": {
+    "contacts": [
+      "contact-alex"
+    ]
+  }
+}

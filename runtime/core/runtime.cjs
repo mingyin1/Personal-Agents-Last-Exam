@@ -8,7 +8,7 @@ const str={type:'string'},shape=(p={},required=Object.keys(p))=>({type:'object',
 const ver=shape({epoch:{type:'integer',minimum:1},revision:{type:'integer',minimum:0}});
 const bindingSchema=read(path.join(__dirname,'schemas/binding.schema.json'));
 const policySchema=read(path.join(__dirname,'schemas/policies.schema.json'));
-const admin=['env.reset','env.load_seed','env.apply_event','env.snapshot','env.event_status','env.validate_bundle'];
+const {operations:admin}=require('./admin-tools.cjs');
 function createRuntime({registryFile,assemblyFile}={}){
  const registry=load(registryFile),configs=new Map();
  for(const [id,pkg] of registry.apps)configs.set(id,{...copy(pkg.fixtures),bundle:copy(pkg.bundle)});
@@ -62,27 +62,39 @@ function createRuntime({registryFile,assemblyFile}={}){
   'env.reset':shape({expected_version:ver,profile:{type:'string',enum:Object.keys(configs.get(app).policies)}},['expected_version']),
   'env.load_seed':shape({expected_version:ver,data:read(path.join(p.dir,p.manifest.schemas.seed)),binding:bindingSchema,policies:policySchema,bundle:bundleSchema,virtual_now:{type:'string',format:'date-time'},request_id:{type:'string',minLength:1}},['expected_version','data']),
   'env.apply_event':shape({expected_version:ver,event:read(path.join(p.dir,p.manifest.schemas.events)),bundle:bundleSchema},['expected_version','event']),
+  'env.advance_time':shape({expected_version:ver,virtual_now:{type:'string',format:'date-time'},request_id:{type:'string',minLength:1,pattern:'\\S'}}),
   'env.validate_bundle':shape({data:read(path.join(p.dir,p.manifest.schemas.seed)),bundle:bundleSchema,binding:bindingSchema,policies:policySchema},['data','bundle']),
   'env.snapshot':shape(), 'env.event_status':shape({event_id:str})};}
  const adminCompiled=new Map();
  for(const app of configs.keys())adminCompiled.set(app,Object.fromEntries(Object.entries(adminSchemas(app)).map(([n,s])=>[n,compile(s,path.join(get(app).dir,'schemas'))])));
- function definitions(s,role){return tools(s,role).map(name=>{const t=get(s.app_id).tools.find(t=>t.name===name);return t?{name,description:t.description,inputSchema:t.inputSchema,outputSchema:t.outputSchema,annotations:{readOnlyHint:t.read_only}}:{name,description:'Infra only: '+name,inputSchema:adminSchemas(s.app_id)[name]};});}
- const checkVersion=(s,v)=>{if(!v||v.epoch!==s.epoch||v.revision!==s.revision)fail('stale_version','观察已过期，请重新读取后重试。');};
+ function definitions(s,role){return tools(s,role).map(name=>{const t=get(s.app_id).tools.find(t=>t.name===name);return t?{name,description:t.description,inputSchema:t.inputSchema,outputSchema:t.outputSchema,annotations:{readOnlyHint:t.read_only}}:{name,description:name==='env.advance_time'?'Infra only: advance the App virtual clock without changing business records or triggering events. Requires an observed version and retry-stable request ID.':'Infra only: '+name,inputSchema:adminSchemas(s.app_id)[name]};});}
+ const checkVersion=(s,v)=>{if(!v||v.epoch!==s.epoch||v.revision!==s.revision)fail('stale_version','The observed version is stale; read the current state before retrying.');};
  function execute(original,role,name,args={}, {log}={}){
   const receivedAt=new Date().toISOString();
   const s=copy(original),p=get(s.app_id),before=version(s);let changed=false,result,eventTrace;
   try{
-   if(!tools(s,role).includes(name))fail('permission_denied','当前身份或任务不允许此操作。');
+   if(!tools(s,role).includes(name))fail('permission_denied','This operation is not allowed for the current identity or task.');
    const t=p.tools.find(t=>t.name===name),valid=role==='infra'?adminCompiled.get(s.app_id)[name]:t.validateInput;
    if(!valid(args))fail('invalid_arguments','Arguments do not match inputSchema');
    if(name==='env.snapshot')return {state:original,result:{status:'ok',snapshot:copy(original),app_id:s.app_id,version:before}};
    if(name==='env.event_status')result={status:'ok',receipt:copy(s.receipts['event:'+args.event_id]?.result||null)};
-   else if(name==='env.reset'){
+   else if(name==='env.advance_time'){
+    const key='clock:'+args.request_id,fp=JSON.stringify({virtual_now:args.virtual_now}),prior=s.receipts[key];
+    if(prior){if(prior.fingerprint!==fp)fail('idempotency_conflict','The same request_id cannot identify different clock targets.');return {state:original,result:{...copy(prior.result),duplicate:true}};}
+    checkVersion(s,args.expected_version);
+    const previous=s.virtual_now,target=Date.parse(args.virtual_now),current=Date.parse(previous);
+    if(target<current)fail('invalid_time','The App virtual clock cannot move backwards.');
+    // Equal instants are acknowledged without changing the revision or stored
+    // timezone spelling. No business handler, event or timer is invoked here.
+    if(target>current){s.virtual_now=args.virtual_now;s.revision++;changed=true;}
+    result={status:'committed',request_id:args.request_id,previous_virtual_now:previous,virtual_now:s.virtual_now,advanced:changed};
+    s.receipts[key]={fingerprint:fp,result:{...copy(result),app_id:s.app_id,version:version(s)}};
+   }else if(name==='env.reset'){
     checkVersion(s,args.expected_version);s.data=copy(s.initial_data);s.resources=copy(s.initial_resources);s.profile=args.profile||s.profile;s.epoch++;s.revision=0;s.next_id=1;s.virtual_now=s.initial_virtual_now||registry.initialTime;s.audit=[];s.receipts={};changed=true;result={status:'ready',reset_scope:s.app_id};
    }else if(name==='env.load_seed'){
     const key='seed:'+args.request_id,fp=JSON.stringify({data:args.data,binding:args.binding,policies:args.policies,bundle:args.bundle,virtual_now:args.virtual_now});
     if(args.bundle&&!args.request_id)fail('invalid_arguments','Bundle loads require request_id');
-    if(args.request_id&&s.receipts[key]){if(s.receipts[key].fingerprint!==fp)fail('idempotency_conflict','相同 request_id 不得用于不同素材包。');return {state:original,result:{...copy(s.receipts[key].result),duplicate:true}};}
+    if(args.request_id&&s.receipts[key]){if(s.receipts[key].fingerprint!==fp)fail('idempotency_conflict','The same request_id cannot identify different seed bundles.');return {state:original,result:{...copy(s.receipts[key].result),duplicate:true}};}
     checkVersion(s,args.expected_version);
     if(!args.binding&&args.data.account_id!==s.data.account_id)fail('invalid_seed','Changing account requires an explicit trusted binding');
     s.virtual_now=args.virtual_now||s.virtual_now;s.initial_virtual_now=s.virtual_now;s.binding=copy(args.binding||s.binding);s.policies=copy(args.policies||s.policies);checkConfig(p,s.binding,s.policies);if(!s.policies[s.profile])fail('invalid_configuration','Current profile unavailable');validateData(s,args.data);
@@ -95,13 +107,16 @@ function createRuntime({registryFile,assemblyFile}={}){
     const e=args.event,key='event:'+e.event_id,fp=JSON.stringify({event:e,bundle:args.bundle}),prior=s.receipts[key];
     eventTrace={run_id:s.run_id,app_id:s.app_id,event_id:e.event_id,cloud_event:cloudEvents.metadata(e.payload?.message),received_at:receivedAt,virtual_received_at:s.virtual_now,applied_at:null};
     if(!p.manifest.event_types.includes(e.operation))fail('invalid_event','Undeclared event type');
-    if(prior){if(prior.fingerprint!==fp)fail('idempotency_conflict','相同事件 ID 不得用于不同内容。');return {state:original,result:{...copy(prior.result),duplicate:true}};}
-    checkVersion(s,args.expected_version);if(Date.parse(e.at)<Date.parse(s.virtual_now))fail('invalid_event','不能把 App 虚拟时间向后移动。');
-    s.data=p.plugin.applyEvent(freeze({...context(s,log,true),role:'infra'}),copy(s.data),copy(e));validateData(s,s.data,'invalid_event');if(args.bundle)s.resources=assets.check(p,s.data,args.bundle,{runId:s.run_id});s.virtual_now=e.at;s.revision++;changed=true;result={status:'committed',event_id:e.event_id};
+    if(prior){if(prior.fingerprint!==fp)fail('idempotency_conflict','The same event ID cannot identify different content.');return {state:original,result:{...copy(prior.result),duplicate:true}};}
+    checkVersion(s,args.expected_version);if(Date.parse(e.at)<Date.parse(s.virtual_now))fail('invalid_event','The App virtual clock cannot move backwards.');
+    // Handlers and validation observe the event's logical time. execute() works
+    // on a copy, so a failed handler/validation rolls back the clock as well.
+    s.virtual_now=e.at;
+    s.data=p.plugin.applyEvent(freeze({...context(s,log,true),role:'infra'}),copy(s.data),copy(e));validateData(s,s.data,'invalid_event');if(args.bundle)s.resources=assets.check(p,s.data,args.bundle,{runId:s.run_id});s.revision++;changed=true;result={status:'committed',event_id:e.event_id};
    }else{
-    const policy=s.policies[s.profile].constraints[name];if(policy&&(policy.ids&&!policy.ids.includes(args.id)||policy.fields&&args.patch&&Object.keys(args.patch).some(f=>!policy.fields.includes(f))))fail('permission_denied','对象或字段不在当前任务授权范围。');
+    const policy=s.policies[s.profile].constraints[name];if(policy&&(policy.ids&&!policy.ids.includes(args.id)||policy.fields&&args.patch&&Object.keys(args.patch).some(f=>!policy.fields.includes(f))))fail('permission_denied','The object or fields are outside the current task permissions.');
     const key='request:'+args.request_id,fp=JSON.stringify({name,args});
-    if(!t.read_only){if(!args.request_id||!args.request_id.trim())fail('invalid_arguments','Writes require a request_id');const prior=s.receipts[key];if(prior){if(prior.fingerprint!==fp)fail('idempotency_conflict','相同 request_id 不得用于不同请求。');return {state:original,result:{...copy(prior.result),duplicate:true}};}checkVersion(s,args.expected_version);}
+    if(!t.read_only){if(!args.request_id||!args.request_id.trim())fail('invalid_arguments','Writes require a request_id');const prior=s.receipts[key];if(prior){if(prior.fingerprint!==fp)fail('idempotency_conflict','The same request_id cannot identify different requests.');return {state:original,result:{...copy(prior.result),duplicate:true}};}checkVersion(s,args.expected_version);}
     const out=p.plugin.handleTool(context(s,log,true),copy(s.data),name,copy(args));
     if(t.read_only&&(JSON.stringify(out.data)!==JSON.stringify(s.data)||JSON.stringify(s.resources)!==JSON.stringify(original.resources)))fail('invalid_plugin_result','Read tool attempted a business mutation');
     validateData(s,out.data,'invalid_event');s.data=out.data;
@@ -110,7 +125,7 @@ function createRuntime({registryFile,assemblyFile}={}){
     if(!t.validateOutput(result))fail('invalid_plugin_result','Result does not match outputSchema');
     if(!t.read_only)s.receipts[key]={fingerprint:fp,result:copy(result)};
    }
-   if(changed)s.resources=assets.check(p,s.data,s.resources.bundle,{strictCounts:false,strictOwners:false,runId:s.run_id});
+   if(changed&&name!=='env.advance_time')s.resources=assets.check(p,s.data,s.resources.bundle,{strictCounts:false,strictOwners:false,runId:s.run_id});
    if(eventTrace){
     // processed_at is the Core decision time, before transport persistence.
     // Messaging records committed_at only after the receiver acknowledges storage.
@@ -119,7 +134,7 @@ function createRuntime({registryFile,assemblyFile}={}){
     const e=args.event;s.receipts['event:'+e.event_id]={fingerprint:JSON.stringify({event:e,bundle:args.bundle}),result:{...copy(result),app_id:s.app_id,version:version(s)}};
    }
    result={...result,app_id:s.app_id,version:version(s)};
-   s.audit.push({seq:s.audit.length+1,actor:role,tool:name,decision:'allow',before,after:version(s),state_changed:changed,received_at:receivedAt,wall_time:new Date().toISOString(),virtual_time:s.virtual_now,...(eventTrace?{trace:copy(eventTrace)}:{})});
+   s.audit.push({seq:s.audit.length+1,actor:role,tool:name,decision:'allow',before,after:version(s),state_changed:changed,received_at:receivedAt,wall_time:new Date().toISOString(),virtual_time:s.virtual_now,...(name==='env.advance_time'?{clock:{request_id:args.request_id,from:original.virtual_now,requested:args.virtual_now,to:s.virtual_now}}:{}),...(eventTrace?{trace:copy(eventTrace)}:{})});
    if(!p.validators.state(s))fail('invalid_plugin_result','Resulting App state does not match state schema');
    return {state:s,result};
   }catch(e){const unchanged=copy(original),processedAt=new Date().toISOString();
@@ -127,7 +142,7 @@ function createRuntime({registryFile,assemblyFile}={}){
    const result={status:e.code||'internal_error',message:e.code?e.message:'App handler failed',applied:false,...(e.quality?{quality:e.quality}:{}),version:before,...(e.code==='stale_version'?{current_version:before}:{}),...(eventTrace?{trace:copy(eventTrace)}:{})};
    unchanged.audit.push({seq:unchanged.audit.length+1,actor:role,tool:name,decision:'deny',reason:result.status,before,after:before,state_changed:false,received_at:receivedAt,wall_time:processedAt,virtual_time:original.virtual_now,...(eventTrace?{trace:copy(eventTrace)}:{})});return {state:unchanged,result};}
  }
- function resource(s,id,catalog=s.resources.bundle.catalog.assets){const p=get(s.app_id),a=catalog.find(a=>a.asset_id===id);if(!require('./resource-access.cjs').allowed(p,s,a))return {status:'not_available',message:'资源不存在或不在当前权限范围。'};if(a.availability.status!=='ready')return {status:'unavailable',message:'附件已声明但文件缺失；不能推断内容。'};return {status:'ok',resource:{...copy(a),run_id:s.run_id,uri:'pale://'+s.run_id+'/'+s.app_id+'/assets/'+id}};}
+ function resource(s,id,catalog=s.resources.bundle.catalog.assets){const p=get(s.app_id),a=catalog.find(a=>a.asset_id===id);if(!require('./resource-access.cjs').allowed(p,s,a))return {status:'not_available',message:'The resource does not exist or is outside the current permissions.'};if(a.availability.status!=='ready')return {status:'unavailable',message:'The attachment is declared but its file is missing; content cannot be inferred.'};return {status:'ok',resource:{...copy(a),run_id:s.run_id,uri:'pale://'+s.run_id+'/'+s.app_id+'/assets/'+id}};}
  // Validate all selected fixture bindings and cross-App targets before starting any process.
  for(const app of configs.keys()){const s=create(app);for(const ref of get(app).plugin.references?.(s.data)||[]){const cfg=configs.get(ref.app_id),other=registry.apps.get(ref.app_id);if(cfg&&(cfg.seed.account_id!==ref.account_id||!other.plugin.objects(cfg.seed).includes(ref.object_id)))fail('invalid_seed','Cross-App fixture reference is dangling');}}
  function resourceBytes(s,id){const r=resource(s,id);if(r.status!=='ok')return r;return {...r,blob:s.resources.bundle.blobs[id]};}

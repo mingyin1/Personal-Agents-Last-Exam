@@ -1,0 +1,219 @@
+{
+  "schema_version": "pale.app-contribution.v1",
+  "contract_revision": "0.4.0",
+  "app_id": "messages",
+  "app_categories": [
+    "personal"
+  ],
+  "runtime_manifest_ref": "app.json",
+  "interfaces": [
+    {
+      "interface_id": "agent-mcp",
+      "transport": "mcp.stdio",
+      "audience": [
+        "agent"
+      ],
+      "status": "implemented",
+      "entrypoint_ref": "service.cjs --role agent",
+      "operations": [
+        {
+          "name": "messages.list",
+          "effect": "read",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.get",
+          "effect": "read",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.conversations",
+          "effect": "read",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.conversation.create",
+          "effect": "write",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.send",
+          "effect": "write",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.edit",
+          "effect": "write",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.retract",
+          "effect": "write",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.mark_read",
+          "effect": "write",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.attachment.add",
+          "effect": "write",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.attachment.read",
+          "effect": "read",
+          "caller": "agent"
+        },
+        {
+          "name": "messages.outbound",
+          "effect": "read",
+          "caller": "agent"
+        }
+      ]
+    },
+    {
+      "interface_id": "infra-mcp",
+      "transport": "mcp.stdio",
+      "audience": [
+        "infra"
+      ],
+      "status": "implemented",
+      "entrypoint_ref": "service.cjs --role infra",
+      "operations": [
+        {
+          "name": "env.reset",
+          "effect": "admin",
+          "caller": "infra"
+        },
+        {
+          "name": "env.load_seed",
+          "effect": "admin",
+          "caller": "infra"
+        },
+        {
+          "name": "env.apply_event",
+          "effect": "admin",
+          "caller": "infra"
+        },
+        {
+          "name": "env.snapshot",
+          "effect": "admin",
+          "caller": "infra"
+        },
+        {
+          "name": "env.event_status",
+          "effect": "admin",
+          "caller": "infra"
+        },
+        {
+          "name": "env.validate_bundle",
+          "effect": "admin",
+          "caller": "infra"
+        }
+      ]
+    }
+  ],
+  "state": {
+    "owner": "app",
+    "isolation_keys": [
+      "run_id",
+      "app_id"
+    ],
+    "seed_schema_ref": "schemas/seed.schema.json",
+    "snapshot_includes_assets": true,
+    "reset_scope": "app_instance",
+    "version_checks": "implemented",
+    "idempotent_writes": "implemented",
+    "concurrency_control": "Per-App lock and optimistic epoch/revision check",
+    "commit_confirmation": "committed + epoch/revision; failures preserve business state",
+    "outbox_atomic_with_business_state": "unsupported"
+  },
+  "events": {
+    "accepts": [
+      {
+        "type": "messages.upsert",
+        "schema_ref": "schemas/events.schema.json",
+        "status": "implemented"
+      },
+      {
+        "type": "messages.receive",
+        "schema_ref": "schemas/events.schema.json",
+        "status": "implemented"
+      }
+    ],
+    "emits": [],
+    "trigger_owner": "task_and_infra"
+  },
+  "shared_data": {
+    "identity_binding_ref": "fixtures/binding.json",
+    "account_model_ref": "schemas/seed.schema.json",
+    "cross_app_references": false,
+    "asset_catalog_refs": [
+      "assets.catalog.json"
+    ]
+  },
+  "gui_ref": "gui.json",
+  "notification_channels": [],
+  "subscriptions": {
+    "business_owner": "source_app",
+    "routing_owner": "infra",
+    "task_binding_required": true,
+    "preferences_seed_ref": null,
+    "status": "unsupported"
+  },
+  "dependencies": {
+    "core_api": "1.2.0",
+    "required_apps": [],
+    "services": []
+  },
+  "extensions": [],
+  "asset_runtime": {
+    "implemented_descriptor_versions": [
+      "pale.asset-descriptor.v1"
+    ],
+    "implemented_mime_types": [
+      "image/png",
+      "image/jpeg",
+      "audio/mpeg",
+      "audio/wav",
+      "video/mp4",
+      "application/json",
+      "application/pdf",
+      "text/plain",
+      "text/calendar"
+    ],
+    "implemented_storage_adapters": [
+      "storage.file",
+      "storage.inline"
+    ],
+    "max_assets": 64,
+    "max_bundle_bytes": 1048576
+  },
+  "messaging": {
+    "publishes": [
+      {
+        "channel": "channel.chat",
+        "schema_id": "urn:pale:messages:chat-message:1",
+        "schema_ref": "schemas/router-message.schema.json",
+        "status": "implemented",
+        "event_type": "org.pale.messages.chat.v1",
+        "payload_schema_id": "urn:pale:messages:chat-payload:1"
+      }
+    ],
+    "receives": [
+      {
+        "channel": "channel.chat",
+        "schema_id": "urn:pale:messages:chat-message:1",
+        "schema_ref": "schemas/router-message.schema.json",
+        "status": "implemented",
+        "event_type": "org.pale.messages.chat.v1",
+        "payload_schema_id": "urn:pale:messages:chat-payload:1",
+        "mcp_tool": "env.apply_event",
+        "operation": "messages.receive"
+      }
+    ],
+    "envelope": "cloudevents/1.0"
+  }
+}

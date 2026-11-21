@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "app_id": "notes",
+  "version": "1.0.0",
+  "core_api_version": "1.2.0",
+  "maintainer": {
+    "contact": "Repository issue / PR tagged app:notes"
+  },
+  "license": "MIT",
+  "entrypoint": "plugin.cjs",
+  "service": "service.cjs",
+  "tools": "tools.json",
+  "schemas": {
+    "seed": "schemas/seed.schema.json",
+    "state": "schemas/state.schema.json",
+    "events": "schemas/events.schema.json"
+  },
+  "fixtures": {
+    "seed": "fixtures/minimal.json",
+    "binding": "fixtures/binding.json",
+    "policies": "fixtures/policies.json"
+  },
+  "dependencies": [],
+  "event_types": [
+    "notes.upsert"
+  ],
+  "capabilities": {
+    "modes": [
+      "synthetic"
+    ],
+    "resources": true,
+    "ui": "reviewer renderer",
+    "real_delivery": false
+  },
+  "limitations": [],
+  "dataset": "contribution/dataset.json",
+  "resources": {
+    "catalog": "contribution/assets.catalog.json",
+    "directory": "assets"
+  },
+  "contribution": "contribution/contribution.json"
+}

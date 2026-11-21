@@ -1,0 +1,19 @@
+{
+  "scenario": {
+    "allow": [
+      "contacts.list",
+      "contacts.get"
+    ],
+    "constraints": {}
+  },
+  "sandbox": {
+    "allow": [
+      "contacts.list",
+      "contacts.get",
+      "contacts.create",
+      "contacts.update",
+      "contacts.flags"
+    ],
+    "constraints": {}
+  }
+}

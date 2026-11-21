@@ -1,0 +1,737 @@
+[
+  {
+    "name": "contacts.list",
+    "description": "List/search records without changing state. Archived or trashed records require explicit inclusion.",
+    "read_only": true,
+    "scope": "contacts.list",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "include_inactive": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "ok"
+        },
+        "app_id": {
+          "const": "contacts"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+              },
+              "account_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "history": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "action": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "action"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 1000
+              },
+              "display_name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "person_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "emails": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 254
+                },
+                "maxItems": 20,
+                "uniqueItems": true
+              },
+              "phones": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "uniqueItems": true
+              },
+              "organization": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 200
+              },
+              "groups": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 50
+                },
+                "maxItems": 50,
+                "uniqueItems": true
+              },
+              "notes": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 10000
+              },
+              "archived": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "account_id",
+              "created_at",
+              "updated_at",
+              "history",
+              "display_name",
+              "person_id",
+              "emails",
+              "phones",
+              "organization",
+              "groups",
+              "notes",
+              "archived"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "items"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "contacts.get",
+    "description": "Read one record and its revision/history metadata; no read flags are changed.",
+    "read_only": true,
+    "scope": "contacts.get",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "ok"
+        },
+        "app_id": {
+          "const": "contacts"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "item": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "account_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "history": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "action": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "at",
+                  "action"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 1000
+            },
+            "display_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "person_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "emails": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 254
+              },
+              "maxItems": 20,
+              "uniqueItems": true
+            },
+            "phones": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40
+              },
+              "maxItems": 20,
+              "uniqueItems": true
+            },
+            "organization": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 200
+            },
+            "groups": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50
+              },
+              "maxItems": 50,
+              "uniqueItems": true
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 10000
+            },
+            "archived": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "account_id",
+            "created_at",
+            "updated_at",
+            "history",
+            "display_name",
+            "person_id",
+            "emails",
+            "phones",
+            "organization",
+            "groups",
+            "notes",
+            "archived"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "item"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "contacts.create",
+    "description": "Create a local record using the run clock.",
+    "read_only": false,
+    "scope": "contacts.create",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "person_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 254
+          },
+          "maxItems": 20,
+          "uniqueItems": true
+        },
+        "phones": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "maxItems": 20,
+          "uniqueItems": true
+        },
+        "organization": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "maxItems": 50,
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 10000
+        },
+        "expected_version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "display_name",
+        "expected_version",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "committed"
+        },
+        "app_id": {
+          "const": "contacts"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "contacts.update",
+    "description": "Update explicit fields; preserve revision/history and reject an empty patch.",
+    "read_only": false,
+    "scope": "contacts.update",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        },
+        "patch": {
+          "type": "object",
+          "properties": {
+            "display_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "person_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "emails": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 254
+              },
+              "maxItems": 20,
+              "uniqueItems": true
+            },
+            "phones": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40
+              },
+              "maxItems": 20,
+              "uniqueItems": true
+            },
+            "organization": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 200
+            },
+            "groups": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50
+              },
+              "maxItems": 50,
+              "uniqueItems": true
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 10000
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "expected_version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "id",
+        "patch",
+        "expected_version",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "committed"
+        },
+        "app_id": {
+          "const": "contacts"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "contacts.flags",
+    "description": "Set explicit record flags.",
+    "read_only": false,
+    "scope": "contacts.flags",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        },
+        "patch": {
+          "type": "object",
+          "properties": {
+            "archived": {
+              "type": "boolean"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "expected_version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "id",
+        "patch",
+        "expected_version",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "committed"
+        },
+        "app_id": {
+          "const": "contacts"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

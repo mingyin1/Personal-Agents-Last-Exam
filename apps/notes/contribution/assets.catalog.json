@@ -1,0 +1,8 @@
+{
+  "schema_version": "pale.asset-catalog.v1",
+  "catalog_id": "notes-assets",
+  "app_id": "notes",
+  "dataset_ref": "dataset.json",
+  "assets": [],
+  "extensions": []
+}

@@ -5,9 +5,10 @@ const fs=require('node:fs'),path=require('node:path'),readline=require('node:rea
 const {createRuntime}=require('./runtime.cjs');
 const appLog=require('./app-log.cjs');
 const root=path.resolve(__dirname,'../..');
-const opts={};for(let i=2;i<process.argv.length;i+=2){const k=process.argv[i],v=process.argv[i+1];if(!['--app','--role','--run','--state-dir','--registry','--assembly'].includes(k)||!v){process.stderr.write('Usage: node mcp-server.cjs --app APP_ID --role agent|infra --run RUN [--state-dir DIR]\n');process.exit(1);}opts[k.slice(2)]=v;}
+const opts={};for(let i=2;i<process.argv.length;i+=2){const k=process.argv[i],v=process.argv[i+1];if(!['--app','--role','--run','--state-dir','--registry','--assembly','--initial-profile'].includes(k)||!v){process.stderr.write('Usage: node mcp-server.cjs --app APP_ID --role agent|infra --run RUN [--state-dir DIR] [--initial-profile scenario|sandbox (Infra only)]\n');process.exit(1);}opts[k.slice(2)]=v;}
 if(fixedApp&&opts.app&&opts.app!==fixedApp)throw new Error('App entrypoint is fixed');
 const app=fixedApp||opts.app,role=opts.role,run=opts.run||'demo';
+if(opts['initial-profile'] && (role!=='infra'||!['scenario','sandbox'].includes(opts['initial-profile'])))throw new Error('Initial profile requires Infra and a scenario or sandbox profile');
 const registryFile=opts.registry||path.join(root,'examples/registry.json');
 const model=createRuntime({registryFile,assemblyFile:opts.assembly});
 const pkg=model.get(app);
@@ -21,7 +22,9 @@ function transaction(fn){
  try{
   let state,raw=null;
   if(fs.existsSync(file)){raw=fs.readFileSync(file,'utf8');state=model.normalize(JSON.parse(raw));}
-  else if(role==='infra')state=model.create(app,run);
+  // Choose the initial policy inside the same transaction that creates state.
+  // An existing instance always keeps its data and policy, including on restart.
+  else if(role==='infra')state=model.create(app,run,opts['initial-profile']||'scenario');
   else throw Object.assign(new Error('Environment not initialized; Infra must start this App first.'),{rpcCode:-32001});
   if(state.run_id!==run||state.app_id!==app)throw new Error('State binding mismatch');
   const {state:next=state,result}=fn(state);

@@ -1,0 +1,356 @@
+{
+  "schema": "pale.personal-apps-evidence.v1",
+  "checked_at": "2026-11-19T05:54:26.150Z",
+  "base_commit": "718a4cbc7709dee22bf1e4ad1cff984550d7e519",
+  "runtime_version": "1.6.0",
+  "core_api_version": "1.2.0",
+  "apps": [
+    {
+      "app_id": "files",
+      "app_version": "1.0.0",
+      "package_sha256": "7509b1a611656a0d655eb45ebfbc8c16d128046c3071d75f9b24afc4da40de95",
+      "business_tests": 7,
+      "public_checks": 37,
+      "base_runtime": "passed"
+    },
+    {
+      "app_id": "messages",
+      "app_version": "1.0.0",
+      "package_sha256": "813c7fc86ad1602d59c9216d6db6a71047f70c86175e073be87da2c2a8326013",
+      "business_tests": 10,
+      "public_checks": 39,
+      "base_runtime": "passed"
+    },
+    {
+      "app_id": "notes",
+      "app_version": "1.0.0",
+      "package_sha256": "6e46775ee19f559163864fe1251f4b3cd06bf8aa638c0ccc1dc403c7f0e1908a",
+      "business_tests": 7,
+      "public_checks": 37,
+      "base_runtime": "passed"
+    },
+    {
+      "app_id": "tasks",
+      "app_version": "1.0.0",
+      "package_sha256": "3fdacd452b301d6ec89efb9602dfdeea5a6e9de976cea3c57a0f59eac5613cd6",
+      "business_tests": 7,
+      "public_checks": 36,
+      "base_runtime": "passed"
+    },
+    {
+      "app_id": "contacts",
+      "app_version": "1.0.0",
+      "package_sha256": "47dbd6952f052572c30c241717d30169b9e17da9e1be4678fddc14f816360375",
+      "business_tests": 7,
+      "public_checks": 36,
+      "base_runtime": "passed"
+    }
+  ],
+  "matrices": [
+    {
+      "node": "v18.20.8",
+      "passed": true,
+      "stages": [
+        {
+          "name": "contracts",
+          "status": "passed"
+        },
+        {
+          "name": "contract-rules",
+          "status": "passed"
+        },
+        {
+          "name": "loader-and-compatibility",
+          "status": "passed"
+        },
+        {
+          "name": "extensibility",
+          "status": "passed"
+        },
+        {
+          "name": "clock-contract",
+          "status": "passed"
+        },
+        {
+          "name": "session-time",
+          "status": "passed"
+        },
+        {
+          "name": "mail-public-verification",
+          "status": "passed"
+        },
+        {
+          "name": "calendar-public-verification",
+          "status": "passed"
+        },
+        {
+          "name": "core-business-and-mcp",
+          "status": "passed"
+        },
+        {
+          "name": "assets",
+          "status": "passed"
+        },
+        {
+          "name": "platform-access",
+          "status": "passed"
+        },
+        {
+          "name": "app-diagnostics",
+          "status": "passed"
+        },
+        {
+          "name": "messaging-directions",
+          "status": "passed"
+        },
+        {
+          "name": "messaging-delivery",
+          "status": "passed"
+        },
+        {
+          "name": "time-tracing",
+          "status": "passed"
+        },
+        {
+          "name": "mail-to-mail",
+          "status": "passed"
+        },
+        {
+          "name": "delivery-to-mail",
+          "status": "passed"
+        },
+        {
+          "name": "non-mail-route",
+          "status": "passed"
+        },
+        {
+          "name": "attachment-safety",
+          "status": "passed"
+        },
+        {
+          "name": "attachment-workflow",
+          "status": "passed"
+        },
+        {
+          "name": "personal-apps",
+          "status": "passed"
+        },
+        {
+          "name": "business-web-host",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "node": "v22.14.0",
+      "passed": true,
+      "stages": [
+        {
+          "name": "contracts",
+          "status": "passed"
+        },
+        {
+          "name": "contract-rules",
+          "status": "passed"
+        },
+        {
+          "name": "loader-and-compatibility",
+          "status": "passed"
+        },
+        {
+          "name": "extensibility",
+          "status": "passed"
+        },
+        {
+          "name": "clock-contract",
+          "status": "passed"
+        },
+        {
+          "name": "session-time",
+          "status": "passed"
+        },
+        {
+          "name": "mail-public-verification",
+          "status": "passed"
+        },
+        {
+          "name": "calendar-public-verification",
+          "status": "passed"
+        },
+        {
+          "name": "core-business-and-mcp",
+          "status": "passed"
+        },
+        {
+          "name": "assets",
+          "status": "passed"
+        },
+        {
+          "name": "platform-access",
+          "status": "passed"
+        },
+        {
+          "name": "app-diagnostics",
+          "status": "passed"
+        },
+        {
+          "name": "messaging-directions",
+          "status": "passed"
+        },
+        {
+          "name": "messaging-delivery",
+          "status": "passed"
+        },
+        {
+          "name": "time-tracing",
+          "status": "passed"
+        },
+        {
+          "name": "mail-to-mail",
+          "status": "passed"
+        },
+        {
+          "name": "delivery-to-mail",
+          "status": "passed"
+        },
+        {
+          "name": "non-mail-route",
+          "status": "passed"
+        },
+        {
+          "name": "attachment-safety",
+          "status": "passed"
+        },
+        {
+          "name": "attachment-workflow",
+          "status": "passed"
+        },
+        {
+          "name": "personal-apps",
+          "status": "passed"
+        },
+        {
+          "name": "business-web-host",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "workflow_checks": [
+    "files: scenario rejects writes",
+    "files: write commits",
+    "files: identical retry returns first receipt",
+    "files: stale version rejected",
+    "files: changed retry rejected",
+    "files: exactly one revision",
+    "files: committed data actually contains new record",
+    "files: separate run unchanged",
+    "files: new process sees durable record",
+    "messages: scenario rejects writes",
+    "messages: write commits",
+    "messages: identical retry returns first receipt",
+    "messages: stale version rejected",
+    "messages: changed retry rejected",
+    "messages: exactly one revision",
+    "messages: committed data actually contains new record",
+    "messages: separate run unchanged",
+    "messages: new process sees durable record",
+    "notes: scenario rejects writes",
+    "notes: write commits",
+    "notes: identical retry returns first receipt",
+    "notes: stale version rejected",
+    "notes: changed retry rejected",
+    "notes: exactly one revision",
+    "notes: committed data actually contains new record",
+    "notes: separate run unchanged",
+    "notes: new process sees durable record",
+    "tasks: scenario rejects writes",
+    "tasks: write commits",
+    "tasks: identical retry returns first receipt",
+    "tasks: stale version rejected",
+    "tasks: changed retry rejected",
+    "tasks: exactly one revision",
+    "tasks: committed data actually contains new record",
+    "tasks: separate run unchanged",
+    "tasks: new process sees durable record",
+    "contacts: scenario rejects writes",
+    "contacts: write commits",
+    "contacts: identical retry returns first receipt",
+    "contacts: stale version rejected",
+    "contacts: changed retry rejected",
+    "contacts: exactly one revision",
+    "contacts: committed data actually contains new record",
+    "contacts: separate run unchanged",
+    "contacts: new process sees durable record",
+    "Contacts person ID reaches Tasks",
+    "Reopen removes current completion time",
+    "Files returns actual synthetic receipt bytes",
+    "Files → Mail preserves original bytes and hash",
+    "Mail → Notes stores readable destination bytes",
+    "Restricted policy loads",
+    "Attachment cannot bypass parent authorization",
+    "Raw resource API also denies restricted attachment",
+    "Real Core rejects corrupt attachment",
+    "Rejected import preserves data and bytes",
+    "Publisher copy matches receiver-owned wire schema",
+    "Independent publisher → Messages commits",
+    "Receiver stores original sender time",
+    "Receiving does not mark a notification read",
+    "Received provenance identifies the publishing App",
+    "Account ownership does not grant edit rights over a received notification",
+    "Rejected receiver edit preserves the message",
+    "Receiver attachment bytes are readable",
+    "Receipt connects producer, receiver and commit time",
+    "Repeated notification deduplicates",
+    "Changed notification ID reuse rejected",
+    "Missing producer time still commits",
+    "Missing time is not fabricated",
+    "Receipt still records receive and commit times",
+    "Source impersonation rejected",
+    "Unknown recipient rejected",
+    "Missing grant rejected",
+    "Denied delivery leaves initial records untouched",
+    "Receiver rejects unbound conversation and requests inspection",
+    "Receiver refusal has no partial records",
+    "Messages A → Messages B commits",
+    "Receiver resolves sender through account binding",
+    "Receiver gets bytes from the source App",
+    "Source records remain in the source instance",
+    "Source clock advances independently",
+    "Read-status update preserves outbound identity and producer time",
+    "Publish retry after a read-status change remains a duplicate",
+    "Read-status retry creates no additional receiver record"
+  ],
+  "independent_base_apps": [
+    "calendar",
+    "contacts",
+    "files",
+    "mail",
+    "messages",
+    "notes",
+    "tasks"
+  ],
+  "submission_type": "maintainer_direct_implementation_CR",
+  "human_acceptance": "pending",
+  "gui": {
+    "passed": true,
+    "apps": [
+      "mail",
+      "calendar",
+      "files",
+      "messages",
+      "notes",
+      "tasks",
+      "contacts"
+    ],
+    "checks": 109,
+    "evidence": "personal-apps-gui.json",
+    "scope": "Real local business browser UI, not a model-agent evaluation or complete user-simulator integration."
+  },
+  "clock": {
+    "evidence": "runtime-time.json",
+    "unit_cases": 7,
+    "mcp_assertions": 44,
+    "app_package_changes": false
+  }
+}

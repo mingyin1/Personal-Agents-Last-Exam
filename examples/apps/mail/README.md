@@ -62,3 +62,7 @@ The App calls the injected `ctx.assets.add` / `ctx.assets.read`; it does not imp
 From the repository root, run `npm run example:attachments` for the complete order notification → Mail → Calendar workflow. See [attachment implementation and acceptance](../../../docs/app-attachments.md).
 
 Only drafts accept attachment edits. Mail's receive handler imports a delivered file under a new recipient-owned ID and associates it with the received message. Senders reuse `schemas/router-attachments.schema.json` for `channel.email.attachments`; the original `channel.email` contract is still supported. The publisher adapter exports bytes through authorized `mail.attachment.get` calls before sending.
+
+## Interactive business Web App
+
+See [GUI startup and boundaries](gui/README.md). From the public repository root run `node runtime/web/server.cjs --app mail --run web-demo --profile sandbox`. The App owns its controls in `gui/src/app.js`; the shared Host exposes only the fixed Agent connection.

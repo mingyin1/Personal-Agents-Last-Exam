@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const contract=require('../contracts/validate.cjs');
 const profile=require('../profiles/local-reference.json');
-const ADMIN=['env.reset','env.load_seed','env.apply_event','env.snapshot','env.event_status','env.validate_bundle'];
+const {baseline:ADMIN}=require('./admin-tools.cjs');
 function requireThat(ok,message){if(!ok)throw new Error('Contribution ['+profile.id+']: '+message);}
 function extensions(value){
  if(!value||typeof value!=='object')return;

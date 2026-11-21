@@ -1,0 +1,226 @@
+{
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+    },
+    "owner_person_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "action": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                }
+              },
+              "required": [
+                "at",
+                "action"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 1000
+          },
+          "conversation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "author_person_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 20000
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "read_by": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "maxItems": 100,
+            "uniqueItems": true
+          },
+          "retracted": {
+            "type": "boolean"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "maxItems": 100,
+            "uniqueItems": true
+          },
+          "edits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 20000
+                }
+              },
+              "required": [
+                "at",
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "delivery_source": {
+            "type": "object",
+            "properties": {
+              "app_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+              },
+              "account_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+              },
+              "object_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "object_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+              }
+            },
+            "required": [
+              "app_id",
+              "object_type",
+              "object_id",
+              "account_id"
+            ],
+            "additionalProperties": false,
+            "description": "Provenance of a received message. Account ownership does not grant authorship; existing delivery provenance is immutable."
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "created_at",
+          "updated_at",
+          "history",
+          "conversation_id",
+          "author_person_id",
+          "text",
+          "sent_at",
+          "received_at",
+          "read_by",
+          "retracted",
+          "attachments",
+          "edits"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 1000
+    },
+    "conversations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "participant_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "maxItems": 100,
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "participant_ids",
+          "archived"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 100
+    }
+  },
+  "required": [
+    "account_id",
+    "owner_person_id",
+    "messages",
+    "conversations"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pale:messages:seed:1"
+}

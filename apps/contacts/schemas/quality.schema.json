@@ -1,0 +1,99 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "pale.quality.v1"
+    },
+    "automated_pass": {
+      "type": "boolean"
+    },
+    "submission_ready": {
+      "type": "boolean"
+    },
+    "dataset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "assets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ready_assets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "declared_missing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "records",
+        "assets",
+        "ready_assets",
+        "declared_missing",
+        "total_bytes"
+      ],
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail"
+            ]
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "detail"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "review": {
+      "$ref": "dataset.schema.json#/properties/review"
+    }
+  },
+  "required": [
+    "schema_version",
+    "automated_pass",
+    "submission_ready",
+    "dataset_id",
+    "counts",
+    "checks",
+    "warnings",
+    "review"
+  ],
+  "additionalProperties": false
+}

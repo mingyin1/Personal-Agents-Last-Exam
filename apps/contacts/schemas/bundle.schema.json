@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "dataset": {
+      "$ref": "dataset.schema.json"
+    },
+    "catalog": {
+      "$ref": "asset-catalog.schema.json"
+    },
+    "blobs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 1398104
+      }
+    }
+  },
+  "required": [
+    "dataset",
+    "catalog",
+    "blobs"
+  ],
+  "additionalProperties": false
+}

@@ -75,6 +75,22 @@ class RoutingTests(unittest.TestCase):
     def run_router(self, api, apply=False, rules=None):
         return routing.Router(api, rules or RULES).run(apply)
 
+    def test_owner_pr_does_not_request_another_reviewer(self):
+        api = FakeAPI([pr(author="DavidZWZ", user={"login": "DavidZWZ", "id": 57624585})])
+        self.assertEqual(self.run_router(api, True)[0]["status"], "self-managed")
+        self.assertFalse(api.posts)
+
+    def test_owner_name_in_text_or_wrong_id_does_not_bypass_routing(self):
+        for user in [{"login": "DavidZWZ", "id": 17}, {"login": "contributor", "id": 57624585}]:
+            api = FakeAPI([pr(user=user)])
+            api.text[api.files[1][0]["filename"]] += '\nOwner: @DavidZWZ\n'
+            self.assertEqual(self.run_router(api)[0]["status"], "would-request")
+
+    def test_owner_can_still_request_optional_manual_reviews(self):
+        api = FakeAPI([pr(user={"login": "DavidZWZ", "id": 57624585}, requested_reviewers=[{"login":"Jasonya"}])])
+        self.assertEqual(self.run_router(api, True)[0]["status"], "preserved")
+        self.assertFalse(api.posts)
+
     def test_domain_map_covers_both_tracks_and_all_canonical_domains(self):
         domains = domains_from_readme((ROOT / "README.md").read_text())
         routing.validate_policy(RULES, domains)

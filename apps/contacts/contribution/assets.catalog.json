@@ -1,0 +1,8 @@
+{
+  "schema_version": "pale.asset-catalog.v1",
+  "catalog_id": "contacts-assets",
+  "app_id": "contacts",
+  "dataset_ref": "dataset.json",
+  "assets": [],
+  "extensions": []
+}

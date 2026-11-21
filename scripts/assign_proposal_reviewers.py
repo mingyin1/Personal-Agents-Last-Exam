@@ -12,8 +12,10 @@ import re
 import sys
 
 try:
+    from .review_identity import can_self_review
     from .sync_proposals import APIError, GitHub, PROPOSAL_PATH, TITLE, decode_file, domains_from_readme, field, labels, track
 except ImportError:
+    from review_identity import can_self_review
     from sync_proposals import APIError, GitHub, PROPOSAL_PATH, TITLE, decode_file, domains_from_readme, field, labels, track
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -175,6 +177,9 @@ class Router:
             if pr["base"]["ref"] != self.branch:
                 row.update(status="manual", reason="Proposal does not target the default branch"); continue
             if requested(pr) or pr.get("requested_teams"):
+                continue
+            if can_self_review(pr["user"]["login"], pr["user"].get("id"), self.rules):
+                row.update(status="self-managed", reason="Owner reviews and accepts their own changes; no automatic reviewer request")
                 continue
             try:
                 meta = self.metadata(pr)

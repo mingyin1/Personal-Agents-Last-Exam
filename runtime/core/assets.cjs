@@ -30,7 +30,7 @@ function display(a,dataset){
 }
 function inspect(pkg,data,bundle,{strictCounts=true,strictOwners=true,runId}={}){
  const checks=[],warnings=[],add=(name,ok,detail='')=>checks.push({name,status:ok?'pass':'fail',detail});
- if(!valid(bundle))fail('invalid_bundle','素材包不符合统一 bundle / dataset / asset-descriptor schema。');
+ if(!valid(bundle))fail('invalid_bundle','Asset bundle does not match the shared bundle / dataset / asset-descriptor schemas.');
  const d=bundle.dataset,assets=bundle.catalog.assets,records=pkg.plugin.records(data),objects=new Set(pkg.plugin.objects(data)),refs=pkg.plugin.assetReferences?.(data)||[];
  const sources=new Map(d.sources.map(s=>[s.source_id,s])),ids=new Map(assets.map(a=>[a.asset_id,display(a,d)]));
  validateContract('asset-catalog',bundle.catalog);validateContract('dataset',d);
@@ -40,7 +40,7 @@ function inspect(pkg,data,bundle,{strictCounts=true,strictOwners=true,runId}={})
  add('record_provenance',d.record_source_ids.every(id=>sources.has(id)));
  for(const s of d.sources){
   add('source:'+s.source_id,s.kind==='synthetic'?!!s.generation:s.kind==='collected'?!!s.uri&&!!s.collection:s.kind==='reused'?!!s.uri:true,'Synthetic needs generation details; collected needs URI + collection; reused needs URI.');
-  if(s.kind==='unspecified'||s.usage==='review_required')warnings.push('来源 '+s.source_id+' 尚未完成来源／使用范围审核。');
+  if(s.kind==='unspecified'||s.usage==='review_required')warnings.push('Source '+s.source_id+' is awaiting provenance / usage review.');
  }
  add('review_record',d.review.status!=='approved'||!!d.review.reviewer,'Approved reviews must identify their reviewer.');
  const actual={records:records.length,assets:assets.length,ready_assets:0,declared_missing:0,total_bytes:0};
@@ -60,7 +60,7 @@ function inspect(pkg,data,bundle,{strictCounts=true,strictOwners=true,runId}={})
   if(strictOwners&&content)add('asset_owner:'+a.asset_id,descriptor.subjects.length===1&&a.owner.account_id===data.account_id&&objects.has(a.owner.object_id));
   if(a.availability!=='ready'){
    actual.declared_missing++;add('declared_missing:'+a.asset_id,a.bytes===null&&a.sha256===null&&!Object.hasOwn(bundle.blobs,a.asset_id)&&d.quality_policy.missing_assets==='allow_declared');
-   warnings.push('显式缺失素材：'+a.asset_id);continue;
+   warnings.push('Explicitly missing asset: '+a.asset_id);continue;
   }
   readyIds.add(a.asset_id);actual.ready_assets++;
   let b;try{b=decode(bundle.blobs[a.asset_id]);if(descriptor.storage.adapter==='storage.inline'&&descriptor.storage.inline_base64!==bundle.blobs[a.asset_id])throw new Error('Inline payload mismatch');}catch{add('bytes:'+a.asset_id,false,'Missing or invalid base64');continue;}
@@ -83,14 +83,14 @@ function inspect(pkg,data,bundle,{strictCounts=true,strictOwners=true,runId}={})
  const duplicateRecords=fingerprints.length-new Set(fingerprints).size;
  add('duplicate_records',!duplicateRecords||d.quality_policy.duplicate_records==='allow',duplicateRecords+' duplicate record bodies (id / uid excluded).');
  add('duplicate_assets',!strictCounts||!duplicateAssets||d.quality_policy.duplicate_assets==='allow',duplicateAssets+' repeated byte hashes.');
- if(duplicateRecords)warnings.push('重复记录 '+duplicateRecords+' 条；按显式策略处理。');
- if(duplicateAssets)warnings.push('重复素材 '+duplicateAssets+' 个；按显式策略处理。');
- if(d.review.status==='pending')warnings.push('真实性、变化丰富度和许可仍待人工审核。');
+ if(duplicateRecords)warnings.push('Duplicate records: '+duplicateRecords+'; handled according to the declared policy.');
+ if(duplicateAssets)warnings.push('Duplicate assets: '+duplicateAssets+'; handled according to the declared policy.');
+ if(d.review.status==='pending')warnings.push('Realism, variation and licensing still require human review.');
  const passed=checks.every(x=>x.status==='pass');
  return {schema_version:'pale.quality.v1',automated_pass:passed,submission_ready:passed&&d.review.status!=='pending'&&d.sources.every(s=>s.kind!=='unspecified'&&s.usage==='permitted'),dataset_id:d.dataset_id,counts:actual,checks,warnings,review:copy(d.review)};
 }
 function check(pkg,data,bundle,options){
- const report=inspect(pkg,data,bundle,options);if(!report.automated_pass)throw Object.assign(new Error('素材包验收失败：'+report.checks.filter(x=>x.status==='fail').map(x=>x.name).join(', ')),{code:'invalid_bundle',quality:report});
+ const report=inspect(pkg,data,bundle,options);if(!report.automated_pass)throw Object.assign(new Error('Asset bundle validation failed: '+report.checks.filter(x=>x.status==='fail').map(x=>x.name).join(', ')),{code:'invalid_bundle',quality:report});
  return {bundle:copy(bundle),quality:report};
 }
 function fromPackage(pkg,inside){
@@ -116,8 +116,8 @@ function legacy(pkg,data,previous,priorAccount){
  for(const a of bundle.catalog.assets)for(const subject of a.subjects)if(subject.account_id===priorAccount)subject.account_id=data.account_id;
  bundle.blobs=Object.fromEntries(Object.entries(bundle.blobs).filter(([id])=>bundle.catalog.assets.some(a=>a.asset_id===id&&a.availability.status==='ready')));
  const d=bundle.dataset,sourceId='runtime-record-import';
- d.sources=d.sources.filter(s=>s.source_id!==sourceId);d.sources.push({source_id:sourceId,kind:'unspecified',description:'记录经兼容 env.load_seed 装载；调用方未提供来源说明。',uri:null,license:'UNSPECIFIED',usage:'review_required',collection:null,generation:null});
- d.record_source_ids=[sourceId];d.dataset_id=pkg.manifest.app_id+'-runtime-import';d.expected_counts={records:pkg.plugin.objects(data).length,assets:bundle.catalog.assets.length};d.review={status:'pending',reviewer:null,notes:'请提供完整 bundle 后再用于贡献验收。'};
+ d.sources=d.sources.filter(s=>s.source_id!==sourceId);d.sources.push({source_id:sourceId,kind:'unspecified',description:'Records loaded through compatible env.load_seed; the caller supplied no provenance description.',uri:null,license:'UNSPECIFIED',usage:'review_required',collection:null,generation:null});
+ d.record_source_ids=[sourceId];d.dataset_id=pkg.manifest.app_id+'-runtime-import';d.expected_counts={records:pkg.plugin.objects(data).length,assets:bundle.catalog.assets.length};d.review={status:'pending',reviewer:null,notes:'Provide a complete bundle before contribution acceptance.'};
  for(const a of bundle.catalog.assets)a.provenance.dataset_id=d.dataset_id;
  d.transformations.push('Record-only import; asset bytes retained for surviving parent objects.');
  return bundle;

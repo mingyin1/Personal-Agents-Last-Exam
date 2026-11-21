@@ -6,6 +6,7 @@ on:
       - 'examples/**'
       - 'apps/**'
       - 'package*.json'
+      - 'apps.registry.json'
       - '.github/workflows/app-validation.yml'
   push:
     branches: [main, draft/app-contribution-examples]
@@ -14,6 +15,7 @@ on:
       - 'examples/**'
       - 'apps/**'
       - 'package*.json'
+      - 'apps.registry.json'
       - '.github/workflows/app-validation.yml'
   workflow_dispatch:
 permissions:
@@ -91,3 +93,27 @@ jobs:
         with:
           name: base-runtime-compatibility
           path: evidence/
+
+  business-web:
+    # Match the OS supported by the pinned Playwright/browser dependency.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:web
+      - run: npm run test:web:browser
+      - name: Save browser acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: business-web-acceptance
+          path: .artifacts/web/
+          include-hidden-files: true

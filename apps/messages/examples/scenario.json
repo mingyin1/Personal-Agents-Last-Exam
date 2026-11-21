@@ -1,0 +1,32 @@
+{
+  "event_id": "messages-change-1",
+  "at": "2026-11-18T09:05:00-08:00",
+  "operation": "messages.upsert",
+  "payload": {
+    "id": "msg-dinner",
+    "account_id": "messages-maya",
+    "created_at": "2026-11-17T08:00:00-08:00",
+    "updated_at": "2026-11-18T09:05:00-08:00",
+    "history": [
+      {
+        "at": "2026-11-17T08:00:00-08:00",
+        "action": "seeded"
+      },
+      {
+        "at": "2026-11-18T09:05:00-08:00",
+        "action": "scenario_update"
+      }
+    ],
+    "conversation_id": "conversation-home",
+    "author_person_id": "person-alex",
+    "text": "Can you check the pantry before ordering? (updated by scenario)",
+    "sent_at": "2026-11-17T08:00:00-08:00",
+    "received_at": "2026-11-17T08:00:00-08:00",
+    "read_by": [
+      "person-alex"
+    ],
+    "retracted": false,
+    "attachments": [],
+    "edits": []
+  }
+}

@@ -14,7 +14,7 @@ function discover(root){
  return apps;
 }
 function select(apps,paths){
- const full=paths===null||paths.some(p=>/^(runtime\/|examples\/|package[^/]*\.json$|\.github\/workflows\/app-validation\.yml$)/.test(p));
+ const full=paths===null||paths.some(p=>/^(runtime\/|examples\/|package[^/]*\.json$|apps\.registry\.json$|\.github\/workflows\/app-validation\.yml$)/.test(p));
  if(full)return {full:true,ids:[...apps.keys()].sort()};
  const ids=new Set();
  for(const [id,app]of apps)if(paths.some(p=>p.startsWith(app.relative+'/')))ids.add(id);

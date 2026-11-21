@@ -1,5 +1,8 @@
 {
   "commands_enabled_after": "2026-11-18T22:32:24Z",
+  "self_review_maintainers": [
+    {"login": "DavidZWZ", "id": 57624585}
+  ],
   "environment_v1_days": 14,
   "documentation_examples": [
     "proposals/task/lena-spring-gathering.md"

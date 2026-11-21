@@ -1,0 +1,168 @@
+{
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+    },
+    "owner_person_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "action": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                }
+              },
+              "required": [
+                "at",
+                "action"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 1000
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 10000
+          },
+          "list": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "assignee_person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "status": {
+            "enum": [
+              "tentative",
+              "todo",
+              "in_progress",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "maxItems": 50,
+            "uniqueItems": true
+          },
+          "blocked_by": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "maxItems": 100,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "created_at",
+          "updated_at",
+          "history",
+          "title",
+          "description",
+          "list",
+          "assignee_person_id",
+          "due_at",
+          "priority",
+          "status",
+          "completed_at",
+          "tags",
+          "blocked_by"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 1000
+    }
+  },
+  "required": [
+    "account_id",
+    "owner_person_id",
+    "tasks"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pale:tasks:seed:1"
+}

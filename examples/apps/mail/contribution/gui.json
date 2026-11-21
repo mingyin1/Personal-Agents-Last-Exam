@@ -36,7 +36,24 @@
     "mechanism": "screen_observation",
     "payload_policy": "visible_surface_only"
   },
-  "extensions": [],
+  "extensions": [
+    {
+      "namespace": "pale.web",
+      "version": "1",
+      "required": false,
+      "data": {
+        "page": "gui/index.html",
+        "controller": "gui/src/app.js",
+        "audience": [
+          "agent",
+          "user"
+        ],
+        "host": "runtime/web/server.cjs",
+        "transport": "agent-mcp-bridge",
+        "status": "implemented"
+      }
+    }
+  ],
   "entrypoint": {
     "kind": "local_web",
     "location": "#example"

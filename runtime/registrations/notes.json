@@ -1,0 +1,6 @@
+{
+  "app_id": "notes",
+  "resource_access": {
+    "note": "notes.get"
+  }
+}

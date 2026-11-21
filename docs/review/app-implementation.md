@@ -2,6 +2,8 @@
 
 Verify the exact submitted revision against its approved scope. Public business tests, public runtime integration, independent CI/reviewer reproduction, human workflow review and production deployment evidence are distinct judgments.
 
+Use the [App implementation acceptance checklist](app-implementation-checklist.md) to record per-mode evidence. Establish required modes from the original request, approved proposal and review decisions; a promised GUI does not become optional because the implementation contains only MCP or a renderer.
+
 ## Before running code
 
 Record proposal approval/scope, App commit/hash, App/Core API and runtime versions. Inspect entrypoints, scripts, dependencies and file/network behavior. Execute reviewed submissions in disposable environments without production credentials. The reference runtime's temporary directories and policy checks do not contain malicious Node plugins.
@@ -12,7 +14,7 @@ Use the public checkout's [commands](../../runtime/README.md). For App-only PRs,
 
 | Gate | Observable evidence | Failure/control to inspect |
 | --- | --- | --- |
-| Package and contract | Pinned versions, valid paths, supported schema, declared tools/hooks/events/media | Missing references, version mismatch, unsupported required schema/extension, declared behavior without a handler |
+| Package and contract | Pinned versions, valid paths, supported schema, declared tools/hooks/events/media; a run from a copy holding only the package, the pinned runtime and pinned dependencies | Missing references, version mismatch, unsupported required schema/extension, declared behavior without a handler; undeclared imports or file reads, hard-coded repository-relative paths outside the package, or access to another App's private implementation/state; works only inside this repository. Pinned runtime and declared public dependencies are allowed |
 | Existing App dependencies | Links to reused tools/receive schemas, pinned required packages and a real integration test with observable target records/files | Missing or incompatible dependency; copied receiver state; sender-only or fake-client success presented as integration evidence |
 | App-only business | Real App functions tested from the App package without runtime code | Domain failures, invalid input, missing records, duplicate IDs; success tests alone are insufficient |
 | Real MCP | Initialize/discovery/call; declared input/output; result matches committed state | Forged role/run arguments; malformed output; mutation during a read |
@@ -24,7 +26,7 @@ Use the public checkout's [commands](../../runtime/README.md). For App-only PRs,
 | Generic routing | A non-Mail/custom-channel receiver when changing the Messaging runtime | No product-name routing or implicit fallback to Mail; declarations alone do not prove a new business service exists |
 | Resources, when declared | Actual bytes/MIME/hash, parent association, missing/oversized cases, loaded assets/reset; file delivery into the receiving App when promised | Cross-App/run/parent access denied; corrupt imports roll back; byte storage does not prove document parsing/OCR |
 | Optional diagnostics | App checks/prepared steps, Core persisted outcomes, run/App/call/time correlation | No false commit after persistence failure; retries do not replay business; absent/failing hook leaves results unchanged; no sensitive content or Agent log access |
-| GUI, when promised | Actual business workflow against the same authoritative state as MCP | Admin reviewer controls must not become Agent capabilities; screenshots alone do not prove actions |
+| GUI, when promised | Start submitted pages with a documented public Host; use real browser controls and verify the same state through MCP and reload | A renderer or local presentation-only demo is insufficient; backend routes must deny management access; failed actions must not show success |
 | Human review | Approved flows, realistic variation/errors, readable assets, provenance/licenses | Green automated tests do not establish realism or complete legal/data-source review |
 
 Use **passed / failed / not run / not applicable**, with reason and evidence. Empty messaging directions or absent optional GUI are valid when outside approved scope. A generic checker may need a reviewed adapter for an App without its expected read/event fixture; do not change the App's declared scope just to satisfy that checker.

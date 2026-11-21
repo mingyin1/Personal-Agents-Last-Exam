@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "initial_time": "2026-11-18T09:00:00-08:00",
+  "apps": [
+    {
+      "app_id": "notes",
+      "version": "1.0.0",
+      "path": "apps/notes"
+    },
+    {
+      "app_id": "tasks",
+      "version": "1.0.0",
+      "path": "apps/tasks"
+    },
+    {
+      "app_id": "contacts",
+      "version": "1.0.0",
+      "path": "apps/contacts"
+    },
+    {
+      "app_id": "files",
+      "version": "1.0.0",
+      "path": "apps/files"
+    },
+    {
+      "app_id": "messages",
+      "version": "1.0.0",
+      "path": "apps/messages"
+    },
+    {
+      "app_id": "mail",
+      "version": "1.3.0",
+      "path": "examples/apps/mail"
+    },
+    {
+      "app_id": "calendar",
+      "version": "1.3.0",
+      "path": "examples/apps/calendar"
+    }
+  ]
+}

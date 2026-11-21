@@ -66,3 +66,7 @@ From the repository root, run `npm run example:attachments` for the complete ord
 `calendar.import_ics` takes `text`, `expected_version` and `request_id`. It accepts one VEVENT with UTC DTSTART/DTEND, UID, DTSTAMP and SUMMARY, plus LOCATION, SEQUENCE and CONFIRMED/CANCELLED status. Repeated UID/sequence/content reuses the existing event; a newer sequence updates it; stale or equal-but-conflicting versions are rejected. Unsupported calendar properties are rejected explicitly. Export uses the supplied virtual clock for DTSTAMP.
 
 Calendar event updates preserve UID and reject lower sequences. Attachments belong to their event; cancelled events cannot receive attachment edits. Calendar remains independently usable through its business tools and Infra events.
+
+## Interactive business Web App
+
+See [GUI startup and boundaries](gui/README.md). From the public repository root run `node runtime/web/server.cjs --app calendar --run web-demo --profile sandbox`. The App owns its controls in `gui/src/app.js`; the shared Host exposes only the fixed Agent connection.

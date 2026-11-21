@@ -1,0 +1,6 @@
+{
+  "app_id": "messages",
+  "resource_access": {
+    "message": "messages.get"
+  }
+}

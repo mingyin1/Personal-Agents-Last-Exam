@@ -49,7 +49,7 @@ For internal personal Apps, state which workflow needs each App and whether the 
 - **Operations and access (required):** `[Fill in: MCP, API or GUI entry points; agent-facing actions; setup, reset and event-injection operations used by the platform]`
 - **State and lifecycle (required):** `[Fill in: how app, account and run state is separated; initial data, reset and snapshot behavior; write confirmation, retries and concurrent updates]`
 - **Events and notifications (required):** `[Fill in: external events the app accepts and notifications it sends; channels and example input/output data, or None. Task scenarios define when events occur.]`
-- **Shared data and dependencies (required):** `[Fill in: people, accounts and object references; media and attachment formats; shared components or services needed to run the app]`
+- **Shared data and dependencies (required):** `[Fill in: people, accounts and object references; media and attachment formats; shared components or services needed to run the app; confirm the App package runs on its own with only the shared runtime and these declared dependencies]`
 
 ## 4. Construction plan and effort
 

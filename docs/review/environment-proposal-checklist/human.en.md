@@ -40,6 +40,7 @@ Template: §3 Integration details: Operations and access, State and lifecycle, E
 
 - [ ] H3.1 A task author could set up a starting situation for a specific person and reset it afterwards. (D4.1, D4.3)
 - [ ] H3.2 The actions and events cover what tasks on these workflows will need; nothing essential is missing. (D3.1, D5.1)
+- [ ] H3.3 The App can run on its own: only its package, the shared runtime and its declared dependencies. (D7.1)
 
 **H4 · Could you accept the finished work against this plan?**
 

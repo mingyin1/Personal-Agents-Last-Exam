@@ -18,8 +18,10 @@ import sys
 from urllib.parse import quote, urlparse
 
 try:
+    from .review_identity import can_self_review
     from .sync_proposals import APIError, GitHub, PROPOSAL_PATH, decode_file, field, track
 except ImportError:
+    from review_identity import can_self_review
     from sync_proposals import APIError, GitHub, PROPOSAL_PATH, decode_file, field, track
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -167,7 +169,7 @@ def checked_sha(args, head, evidence=False):
 
 
 def apply_command(state, command, args, *, actor, maintainer, assigned, author, coauthor,
-                  pr, kind, path, blob, files, rules, now, comment_id):
+                  pr, kind, path, blob, files, rules, now, comment_id, actor_id=None):
     state = copy.deepcopy(state)
     if comment_id in state.get("processed", []):
         return state, False
@@ -175,7 +177,8 @@ def apply_command(state, command, args, *, actor, maintainer, assigned, author, 
         raise ValueError("Lifecycle commands require one completed Environment or Task proposal")
     if pr["state"] != "open" or pr["base"]["ref"] != "main":
         raise ValueError("Commands apply only to open PRs targeting main")
-    reviewer = (maintainer or assigned) and not author and not coauthor
+    self_review = maintainer and can_self_review(actor, actor_id, rules)
+    reviewer = (maintainer or assigned) and (self_review or not (author or coauthor))
     participant = author or reviewer
     head = pr["head"]["sha"]
     valid = approval_valid(state, path, blob)
@@ -200,7 +203,7 @@ def apply_command(state, command, args, *, actor, maintainer, assigned, author, 
             state.pop(key, None)
         state["stage"] = "plan-needs-review"
     elif command == "extend-deadline":
-        if not maintainer or author or coauthor or kind != "environment" or not state.get("environment_v1_due_at"):
+        if not maintainer or ((author or coauthor) and not self_review) or kind != "environment" or not state.get("environment_v1_due_at"):
             raise ValueError("A non-author maintainer must extend an approved Environment deadline")
         parts = args.split(maxsplit=1)
         if len(parts) != 2 or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", parts[0]):
@@ -220,7 +223,7 @@ def apply_command(state, command, args, *, actor, maintainer, assigned, author, 
             state.pop("acceptance", None)
         elif command in {"submit-implementation", "accept-implementation"}:
             if command == "accept-implementation":
-                if not maintainer or author or coauthor:
+                if not maintainer or ((author or coauthor) and not self_review):
                     raise ValueError("Only a non-author maintainer with write access can accept implementation")
             elif not participant:
                 raise ValueError("Only the author or reviewer can submit implementation")
@@ -295,13 +298,15 @@ class Lifecycle:
 
     def access(self, actor):
         try:
-            self.api.request(f"{self.base}/collaborators/{quote(actor, safe='')}")
+            # Permission lookup is authoritative. A separate collaborator-list
+            # membership probe may be hidden from the built-in Actions token.
+            data = self.api.request(f"{self.base}/collaborators/{quote(actor, safe='')}/permission")
         except APIError as error:
             if error.status == 404:
                 return False, False
             raise
-        data = self.api.request(f"{self.base}/collaborators/{quote(actor, safe='')}/permission")
-        return True, data.get("permission") in {"write", "maintain", "admin"}
+        permission = data.get("permission")
+        return permission in {"read", "triage", "write", "maintain", "admin"}, permission in {"write", "maintain", "admin"}
 
     def is_assigned(self, pr, actor, kind):
         if actor.casefold() not in {u.casefold() for u in self.rules["reviewers"].get(kind, [])}:
@@ -386,6 +391,7 @@ class Lifecycle:
             if context["issue"]:
                 raise ValueError(context["issue"])
             state, changed = apply_command(context["state"], *parsed, actor=actor, maintainer=maintainer,
+                actor_id=comment["user"].get("id"),
                 assigned=collaborator and self.is_assigned(pr, actor, context["kind"]),
                 author=pr["user"]["login"].casefold() == actor.casefold(), coauthor=coauthor,
                 pr=pr, kind=context["kind"], path=context["path"], blob=context["blob"],

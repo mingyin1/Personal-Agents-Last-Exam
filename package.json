@@ -1,6 +1,6 @@
 {
   "name": "pale-public-app-examples",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "engines": {
     "node": ">=18"
@@ -14,6 +14,14 @@
     "example:delivery-to-mail": "node examples/workflows/delivery-to-mail/run.cjs",
     "contracts:check": "node runtime/build-contracts.cjs --check",
     "contracts:build": "node runtime/build-contracts.cjs",
-    "example:attachments": "node examples/workflows/attachments/run.cjs"
+    "example:attachments": "node examples/workflows/attachments/run.cjs",
+    "test:personal-apps": "node runtime/tests/personal-apps.cjs",
+    "example:personal-apps": "node examples/workflows/personal-apps/run.cjs",
+    "web": "node runtime/web/server.cjs",
+    "test:web": "node --test runtime/web/host.test.cjs",
+    "test:web:browser": "node runtime/web/browser.test.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
   }
 }

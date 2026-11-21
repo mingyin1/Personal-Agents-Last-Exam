@@ -21,6 +21,8 @@ Both tracks use the exact names in the [domain list](#environment-domains). Choo
 
 > 📝 **Proposal PR** → 🔍 **Design review** → ✅ **Plan approved** → 🛠️ **Implement in the same PR** → 🧪 **Validate & merge**
 
+**Owner-managed work:** DavidZWZ can review, approve and accept their own changes, including maintainer integrations, without another reviewer. Their PRs are not automatically assigned to the reviewer pools. Implementation evidence, commit-bound acceptance and required CI still apply. The non-author review requirements below apply to other contributors. See the [owner exception](docs/review/proposal-lifecycle.md).
+
 - **Design review:** reviewers comment; the author revises. An assigned Track reviewer or non-author maintainer posts `/approve-plan <commit-sha>` using the full current commit SHA. The bot records the approved scope and commit and adds `plan-approved`. The PR stays open; this does not merge the proposal.
 - **Implementation:** once the infrastructure is available, add code and evidence to the same PR. Request a design re-review for substantial scope changes.
 - **Acceptance:** link implementation and verification evidence to each planned deliverable. Reviewers compare it with the approved scope, check outcomes and reproduce key results. Only the final validated merge counts as an accepted contribution.

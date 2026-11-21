@@ -1,0 +1,28 @@
+{
+  "scenario": {
+    "allow": [
+      "messages.list",
+      "messages.get",
+      "messages.conversations",
+      "messages.attachment.read",
+      "messages.outbound"
+    ],
+    "constraints": {}
+  },
+  "sandbox": {
+    "allow": [
+      "messages.list",
+      "messages.get",
+      "messages.conversations",
+      "messages.conversation.create",
+      "messages.send",
+      "messages.edit",
+      "messages.retract",
+      "messages.mark_read",
+      "messages.attachment.add",
+      "messages.attachment.read",
+      "messages.outbound"
+    ],
+    "constraints": {}
+  }
+}

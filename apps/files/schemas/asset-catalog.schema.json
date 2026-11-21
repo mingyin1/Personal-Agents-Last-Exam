@@ -1,0 +1,64 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "pale.asset-catalog.v1"
+    },
+    "catalog_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+    },
+    "app_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+    },
+    "dataset_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "asset-descriptor.schema.json"
+      }
+    },
+    "extensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "namespace",
+          "version",
+          "required",
+          "data"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "catalog_id",
+    "app_id",
+    "dataset_ref",
+    "assets",
+    "extensions"
+  ],
+  "additionalProperties": false
+}

@@ -16,6 +16,8 @@ Replace each `[Fill in: …]` with your answer. Required and optional fields are
 
 Review requests are assigned automatically by Track and primary domain, with continuity for repeated proposals from the same author in that domain. Drafts wait for Ready for review. Existing manual assignments are preserved. The [routing policy](../docs/review/reviewer-routing.md) lists the six reviewers, exceptions and workload counts.
 
+DavidZWZ's PRs are owner-managed: no automatic reviewer assignment or external approval is required. The owner may record their own plan and implementation acceptance; evidence and CI requirements remain. Other contributors follow the reviewer process below.
+
 Submit the completed proposal in a PR. An assigned Track reviewer or non-author maintainer posts `/approve-plan <commit-sha>`; the bot records the approved scope and applies `plan-approved`. The PR stays open. Add implementation and evidence against the agreed deliverables to the same PR. Substantial scope changes receive another design review. Only the final validated merge counts as acceptance.
 
 The [proposal list](https://github.com/MatrAIx-ai/Personal-Agents-Last-Exam/blob/proposal-index/proposals/proposal-list.md) updates automatically on the generated `proposal-index` branch, including proposals whose implementation has not merged. Keep your design and progress current in your PR; neither authors nor maintainers need to edit the list. Listing a proposal does not approve it or reserve exclusive scope.

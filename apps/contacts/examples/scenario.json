@@ -1,0 +1,35 @@
+{
+  "event_id": "contacts-change-1",
+  "at": "2026-11-18T09:05:00-08:00",
+  "operation": "contacts.upsert",
+  "payload": {
+    "id": "contact-alex",
+    "account_id": "contacts-maya",
+    "created_at": "2026-11-17T08:00:00-08:00",
+    "updated_at": "2026-11-18T09:05:00-08:00",
+    "history": [
+      {
+        "at": "2026-11-17T08:00:00-08:00",
+        "action": "seeded"
+      },
+      {
+        "at": "2026-11-18T09:05:00-08:00",
+        "action": "scenario_update"
+      }
+    ],
+    "display_name": "Alex Rivera",
+    "person_id": "person-alex",
+    "emails": [
+      "alex@example.test"
+    ],
+    "phones": [
+      "+1-202-555-0104"
+    ],
+    "organization": "Example Studio (updated by scenario)",
+    "groups": [
+      "friends"
+    ],
+    "notes": "Prefers email for scheduling.",
+    "archived": false
+  }
+}

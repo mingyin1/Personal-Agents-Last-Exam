@@ -1,0 +1,150 @@
+{
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "operation": {
+      "const": "notes.upsert"
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        },
+        "account_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "action": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "at",
+              "action"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "body": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 20000
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "maxItems": 50,
+          "uniqueItems": true
+        },
+        "pinned": {
+          "type": "boolean"
+        },
+        "archived": {
+          "type": "boolean"
+        },
+        "trashed": {
+          "type": "boolean"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+          },
+          "maxItems": 100,
+          "uniqueItems": true
+        },
+        "revisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "body": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 20000
+              }
+            },
+            "required": [
+              "at",
+              "title",
+              "body"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "id",
+        "account_id",
+        "created_at",
+        "updated_at",
+        "history",
+        "title",
+        "body",
+        "tags",
+        "pinned",
+        "archived",
+        "trashed",
+        "attachments",
+        "revisions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "event_id",
+    "at",
+    "operation",
+    "payload"
+  ],
+  "additionalProperties": false
+}

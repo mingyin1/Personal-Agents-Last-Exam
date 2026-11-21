@@ -1,0 +1,4 @@
+Synthetic receipt
+Merchant: Example Market
+Total: USD 24.50
+Purchased: 2026-11-17

@@ -1,0 +1,176 @@
+{
+  "schema": "pale.web-acceptance.v1",
+  "checked_at": "2026-11-19T05:52:12.937Z",
+  "node": "v22.14.0",
+  "browser": "141.0.7390.37",
+  "apps": [
+    {
+      "app": "mail",
+      "package_sha256": "c3ab5a9a87d65f921c9d3f8bd1c0bdf06827ef16cb244230539e0b5637357ae4",
+      "passed": true,
+      "checks": [
+        "Public Host loads App-owned interface",
+        "App controller covers every declared business tool",
+        "Business discovery has no management tools",
+        "Browser create commits a real MCP-readable record",
+        "Browser edit changes the same backend record",
+        "Browser reload retains committed record",
+        "Browser uploads original attachment bytes",
+        "Browser downloads the same authorized bytes",
+        "GUI sends draft into local Sent",
+        "Reply opens a draft addressed to the visible sender",
+        "Authorized image opens as an actual image preview",
+        "Unavailable attachment has a readable fallback",
+        "Independent scenario event commits",
+        "GUI refresh observes independent scenario state",
+        "Direct management request from business session is denied",
+        "No browser JavaScript errors",
+        "Narrow viewport has no horizontal page overflow"
+      ]
+    },
+    {
+      "app": "calendar",
+      "package_sha256": "6eaae259b8f07668e435fc802d37759a2f55718a40eb0064bfffb68d7c2f6f91",
+      "passed": true,
+      "checks": [
+        "Public Host loads App-owned interface",
+        "App controller covers every declared business tool",
+        "Business discovery has no management tools",
+        "Browser create commits a real MCP-readable record",
+        "Browser edit changes the same backend record",
+        "Browser reload retains committed record",
+        "Browser uploads original attachment bytes",
+        "Browser downloads the same authorized bytes",
+        "GUI reports business failure without partial event",
+        "GUI cancels the selected event",
+        "Month navigation changes the visible calendar",
+        "Picking a calendar day prefills an event time",
+        "Independent scenario event commits",
+        "GUI refresh observes independent scenario state",
+        "Direct management request from business session is denied",
+        "No browser JavaScript errors",
+        "Narrow viewport has no horizontal page overflow"
+      ]
+    },
+    {
+      "app": "files",
+      "package_sha256": "7509b1a611656a0d655eb45ebfbc8c16d128046c3071d75f9b24afc4da40de95",
+      "passed": true,
+      "checks": [
+        "Public Host loads App-owned interface",
+        "App controller covers every declared business tool",
+        "Business discovery has no management tools",
+        "Browser create commits a real MCP-readable record",
+        "Browser edit changes the same backend record",
+        "Browser reload retains committed record",
+        "Files upload creates real versioned bytes",
+        "Files download returns original bytes",
+        "Opening a folder shows its actual children",
+        "Independent scenario event commits",
+        "GUI refresh observes independent scenario state",
+        "Direct management request from business session is denied",
+        "No browser JavaScript errors",
+        "Narrow viewport has no horizontal page overflow"
+      ]
+    },
+    {
+      "app": "messages",
+      "package_sha256": "813c7fc86ad1602d59c9216d6db6a71047f70c86175e073be87da2c2a8326013",
+      "passed": true,
+      "checks": [
+        "Public Host loads App-owned interface",
+        "App controller covers every declared business tool",
+        "Business discovery has no management tools",
+        "Browser create commits a real MCP-readable record",
+        "Browser edit changes the same backend record",
+        "Browser reload retains committed record",
+        "Browser uploads original attachment bytes",
+        "Browser downloads the same authorized bytes",
+        "GUI retracts a locally authored message",
+        "In-thread composer saves to the selected conversation",
+        "Independent scenario event commits",
+        "GUI refresh observes independent scenario state",
+        "Direct management request from business session is denied",
+        "No browser JavaScript errors",
+        "Narrow viewport has no horizontal page overflow"
+      ]
+    },
+    {
+      "app": "notes",
+      "package_sha256": "6e46775ee19f559163864fe1251f4b3cd06bf8aa638c0ccc1dc403c7f0e1908a",
+      "passed": true,
+      "checks": [
+        "Public Host loads App-owned interface",
+        "App controller covers every declared business tool",
+        "Business discovery has no management tools",
+        "Browser create commits a real MCP-readable record",
+        "Retry after a lost committed response has one effect",
+        "Browser edit changes the same backend record",
+        "Browser reload retains committed record",
+        "Untrusted text is displayed, never executed",
+        "Stale form displays a conflict and preserves concurrent data",
+        "Browser uploads original attachment bytes",
+        "Browser downloads the same authorized bytes",
+        "Pinned filter uses real note state",
+        "Independent scenario event commits",
+        "GUI refresh observes independent scenario state",
+        "Direct management request from business session is denied",
+        "No browser JavaScript errors",
+        "Narrow viewport has no horizontal page overflow"
+      ]
+    },
+    {
+      "app": "tasks",
+      "package_sha256": "3fdacd452b301d6ec89efb9602dfdeea5a6e9de976cea3c57a0f59eac5613cd6",
+      "passed": true,
+      "checks": [
+        "Public Host loads App-owned interface",
+        "App controller covers every declared business tool",
+        "Business discovery has no management tools",
+        "Browser create commits a real MCP-readable record",
+        "Browser edit changes the same backend record",
+        "Browser reload retains committed record",
+        "GUI completes a task",
+        "Task checkbox updates actual completion status",
+        "Independent scenario event commits",
+        "GUI refresh observes independent scenario state",
+        "Direct management request from business session is denied",
+        "No browser JavaScript errors",
+        "Narrow viewport has no horizontal page overflow"
+      ]
+    },
+    {
+      "app": "contacts",
+      "package_sha256": "47dbd6952f052572c30c241717d30169b9e17da9e1be4678fddc14f816360375",
+      "passed": true,
+      "checks": [
+        "Public Host loads App-owned interface",
+        "App controller covers every declared business tool",
+        "Business discovery has no management tools",
+        "Browser create commits a real MCP-readable record",
+        "Browser edit changes the same backend record",
+        "Browser reload retains committed record",
+        "GUI archives a contact",
+        "Contact groups filter the address book",
+        "Independent scenario event commits",
+        "GUI refresh observes independent scenario state",
+        "Direct management request from business session is denied",
+        "No browser JavaScript errors",
+        "Narrow viewport has no horizontal page overflow"
+      ]
+    }
+  ],
+  "passed": true,
+  "restricted_gui": {
+    "passed": true,
+    "checks": [
+      "Undiscovered create control is absent",
+      "GUI sends only permitted edited time fields",
+      "Original title and participants are not overwritten"
+    ]
+  },
+  "shared_ui_sha256": {
+    "runtime/web/client.js": "fc106faf8c472089c59d0fb78d5aa8732c845390ac8bc3c9bed8649662c6e000",
+    "runtime/web/style.css": "a847c1de5005e9748fde51d4ea5498eea47fd40e75015bed8ca478aba2679f02"
+  }
+}

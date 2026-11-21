@@ -1,0 +1,6 @@
+{
+  "app_id": "files",
+  "resource_access": {
+    "file": "files.get"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "scenario": {
+    "allow": [
+      "tasks.list",
+      "tasks.get"
+    ],
+    "constraints": {}
+  },
+  "sandbox": {
+    "allow": [
+      "tasks.list",
+      "tasks.get",
+      "tasks.create",
+      "tasks.update",
+      "tasks.transition"
+    ],
+    "constraints": {}
+  }
+}

@@ -8,9 +8,11 @@ The public checkout now contains the same local Core and Messaging implementatio
 
 - [Mail](../examples/apps/mail/README.md): a complete Mail reference package.
 - [Calendar](../examples/apps/calendar/README.md): a separate Calendar reference package.
+- [Shared personal Apps](personal-apps.md): Files, Messages, Notes, Tasks and Contacts packages, open-source design references and executable cross-App checks. New packages use `apps/<app-id>/`; Mail and Calendar stay in their existing reference locations.
 - [App integration guide](app-integrations.md): **read this before connecting to an existing personal or external App**.
 - [Public runtime](../runtime/README.md): launch, validation, state, diagnostics and current limitations.
 - [Proposal review](review/environment-proposal.md) and [implementation review](review/app-implementation.md): review expectations.
+- [App implementation acceptance checklist](review/app-implementation-checklist.md): scope, public delivery, actual GUI/MCP workflows and evidence required for acceptance.
 
 Keep the reference Mail and Calendar under `examples/apps/`. New contributed Apps go under `apps/<app-id>/`, subject to maintainer scope/location review. Personal and external Apps use the same package contract. Do not copy an existing receiving App into your package to implement an integration.
 
@@ -86,6 +88,8 @@ Keep `plugin.cjs` small; put business modules under `src/`. The current hooks ar
 `handleTool(ctx, data, name, args)` operates on a working copy and returns `{ data, result }`. `applyEvent` returns updated business data. Core validates input/output and business records, controls persistence, and returns the existing result/status/version through MCP. A read-only handler may not change business data.
 
 Tasks supply actual accounts, history, preferences and scenario events. Apps define valid records and resulting transitions. Infra loads history with `env.load_seed`, applies changes with `env.apply_event`, and manages reset/snapshot. These administrative operations are unavailable to Agent connections, including when an Agent guesses their names.
+
+Use the supplied `ctx.virtual_now` for current-time business fields. Infra advances idle Apps with Core's `env.advance_time` before later sessions; contributors do not implement that tool or change their schemas. Event handlers observe their event's `at` time. The [time contract and example](runtime-time.md) explain initial/history time, session synchronization, delivery time and reset behavior.
 
 Contributors describe business effects and record relationships. Core enforces local policy; production Infra supplies trusted identities, credentials and deployment access controls. Authors do not implement token issuance or authentication policy.
 

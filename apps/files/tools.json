@@ -1,0 +1,1145 @@
+[
+  {
+    "name": "files.list",
+    "description": "List/search records without changing state. Archived or trashed records require explicit inclusion.",
+    "read_only": true,
+    "scope": "files.list",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "include_inactive": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "ok"
+        },
+        "app_id": {
+          "const": "files"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+              },
+              "account_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "history": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "action": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "action"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 1000
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160,
+                "pattern": "^[^/\\\\\\u0000-\\u001f]+$"
+              },
+              "parent_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "kind": {
+                "enum": [
+                  "file",
+                  "folder"
+                ]
+              },
+              "trashed": {
+                "type": "boolean"
+              },
+              "versions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "number": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "asset_id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                    },
+                    "at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "source": {
+                      "type": "string",
+                      "minLength": 0,
+                      "maxLength": 1000
+                    }
+                  },
+                  "required": [
+                    "number",
+                    "asset_id",
+                    "at",
+                    "source"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 100
+              }
+            },
+            "required": [
+              "id",
+              "account_id",
+              "created_at",
+              "updated_at",
+              "history",
+              "name",
+              "parent_id",
+              "kind",
+              "trashed",
+              "versions"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "items"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "files.get",
+    "description": "Read one record and its revision/history metadata; no read flags are changed.",
+    "read_only": true,
+    "scope": "files.get",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "ok"
+        },
+        "app_id": {
+          "const": "files"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "item": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "account_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "history": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "action": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "at",
+                  "action"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 1000
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[^/\\\\\\u0000-\\u001f]+$"
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "kind": {
+              "enum": [
+                "file",
+                "folder"
+              ]
+            },
+            "trashed": {
+              "type": "boolean"
+            },
+            "versions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "number": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "asset_id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                  },
+                  "at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "source": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "number",
+                  "asset_id",
+                  "at",
+                  "source"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 100
+            }
+          },
+          "required": [
+            "id",
+            "account_id",
+            "created_at",
+            "updated_at",
+            "history",
+            "name",
+            "parent_id",
+            "kind",
+            "trashed",
+            "versions"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "item"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "files.mkdir",
+    "description": "Create a folder under an existing active folder.",
+    "read_only": false,
+    "scope": "files.mkdir",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[^/\\\\\\u0000-\\u001f]+$"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "name",
+        "expected_version",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "committed"
+        },
+        "app_id": {
+          "const": "files"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "files.put",
+    "description": "Create a file or append an immutable file version. Payload includes original bytes and SHA-256.",
+    "read_only": false,
+    "scope": "files.put",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "file": {
+          "type": "object",
+          "properties": {
+            "filename": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[^\\\\/\\u0000-\\u001f\\u007f]+$"
+            },
+            "mime_type": {
+              "enum": [
+                "application/pdf",
+                "text/calendar",
+                "text/plain",
+                "image/png",
+                "image/jpeg",
+                "audio/mpeg",
+                "audio/wav",
+                "video/mp4",
+                "application/json"
+              ]
+            },
+            "base64": {
+              "type": "string",
+              "maxLength": 1398104
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "media": {
+              "type": "object",
+              "properties": {
+                "image": {
+                  "type": "object",
+                  "properties": {
+                    "width": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "height": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "animated": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "audio": {
+                  "type": "object",
+                  "properties": {
+                    "duration_ms": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "codec": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sample_rate_hz": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "channels": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "video": {
+                  "type": "object",
+                  "properties": {
+                    "duration_ms": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "codec": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "width": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "height": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "fps": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "has_audio": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "document": {
+                  "type": "object",
+                  "properties": {
+                    "page_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "text_asset_id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "sensor": {
+                  "type": "object",
+                  "properties": {
+                    "device_ref": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sample_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "coordinate_frame": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "missing_value_rule": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "captured_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "device_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "filename",
+            "mime_type",
+            "base64",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "source": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1000
+        },
+        "expected_version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "file",
+        "expected_version",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "committed"
+        },
+        "app_id": {
+          "const": "files"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "files.move",
+    "description": "Rename or move an item; reject cycles, name collisions and inactive parents.",
+    "read_only": false,
+    "scope": "files.move",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        },
+        "patch": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[^/\\\\\\u0000-\\u001f]+$"
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "expected_version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "id",
+        "patch",
+        "expected_version",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "committed"
+        },
+        "app_id": {
+          "const": "files"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "files.trash",
+    "description": "Trash or restore one item. Nonempty folders must be emptied first.",
+    "read_only": false,
+    "scope": "files.trash",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        },
+        "trashed": {
+          "type": "boolean"
+        },
+        "expected_version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "id",
+        "trashed",
+        "expected_version",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "committed"
+        },
+        "app_id": {
+          "const": "files"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "files.read",
+    "description": "Read original file bytes for a selected immutable version; default to latest.",
+    "read_only": true,
+    "scope": "files.read",
+    "resource_target": "current account",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "ok"
+        },
+        "app_id": {
+          "const": "files"
+        },
+        "version": {
+          "type": "object",
+          "properties": {
+            "epoch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "epoch",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "file": {
+          "type": "object",
+          "properties": {
+            "filename": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[^\\\\/\\u0000-\\u001f\\u007f]+$"
+            },
+            "mime_type": {
+              "enum": [
+                "application/pdf",
+                "text/calendar",
+                "text/plain",
+                "image/png",
+                "image/jpeg",
+                "audio/mpeg",
+                "audio/wav",
+                "video/mp4",
+                "application/json"
+              ]
+            },
+            "base64": {
+              "type": "string",
+              "maxLength": 1398104
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "media": {
+              "type": "object",
+              "properties": {
+                "image": {
+                  "type": "object",
+                  "properties": {
+                    "width": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "height": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "animated": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "audio": {
+                  "type": "object",
+                  "properties": {
+                    "duration_ms": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "codec": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sample_rate_hz": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "channels": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "video": {
+                  "type": "object",
+                  "properties": {
+                    "duration_ms": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "codec": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "width": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "height": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "fps": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "has_audio": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "document": {
+                  "type": "object",
+                  "properties": {
+                    "page_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "text_asset_id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "sensor": {
+                  "type": "object",
+                  "properties": {
+                    "device_ref": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sample_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "coordinate_frame": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "missing_value_rule": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "captured_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "device_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "filename",
+            "mime_type",
+            "base64",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "status",
+        "app_id",
+        "version",
+        "file",
+        "number"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

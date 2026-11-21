@@ -40,6 +40,8 @@ A committed result contains the target account, event ID, state version and Clou
 
 `cloud_event.time` preserves producer-reported time exactly when supplied; otherwise it is absent. Messaging `received_at` is arrival wall time, `applied_at` is receiver virtual time, and `committed_at` is when Messaging receives the successful acknowledgement. `receiver_trace` preserves Core's event receipt metadata. Core `processed_at` precedes durable persistence and is not itself a commit timestamp.
 
+Infra must synchronize participating App clocks with `env.advance_time` before resuming actions/deliveries at a later logical-time boundary, after processing earlier due events. Messaging does not infer the current session time from the producer envelope. Advancing the receiver clock preserves its epoch/binding; a conflicting concurrent update is still rejected through the observed version. See the [time contract](../../docs/runtime-time.md) and [cross-session delivery example](../../examples/workflows/session-time/README.md).
+
 Join receipt `event_id` to Infra `env.event_status` and the receiver audit within the same run/account/epoch. Mail's created record ID equals the delivery event ID; other receivers may expose a different documented relationship. Timestamps alone do not prove global order or identity.
 
 If the receiver commits but acknowledgement is lost, the result is `unknown`, includes the attempted event ID, has no confirmed commit time and stops the run. Inspect receiver evidence before retrying. Deduplication is in-process; old-run reconnection is rejected. Logs are not a recovery queue and source/target commits are not atomic.

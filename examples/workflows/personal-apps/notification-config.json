@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "registry": "apps.registry.json",
+  "authentication": {
+    "mode": "trusted-stdio"
+  },
+  "publishers": [
+    {
+      "app_id": "order-notifier",
+      "account_id": "order-maya",
+      "owner_person_id": "person-maya",
+      "package_root": "examples/workflows/personal-apps/publisher",
+      "contribution_ref": "contribution/contribution.json",
+      "allowed_recipients": [
+        {
+          "app_id": "messages",
+          "account_id": "messages-maya",
+          "channel": "channel.chat"
+        }
+      ]
+    }
+  ]
+}

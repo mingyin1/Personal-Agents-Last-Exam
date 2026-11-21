@@ -1,6 +1,6 @@
 {
   "name": "@pale/app-runtime",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "description": "Public local Core and Messaging reference runtime",
   "main": "core/runtime.cjs",

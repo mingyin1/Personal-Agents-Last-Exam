@@ -1,0 +1,25 @@
+{
+  "people": [
+    {
+      "person_id": "person-maya",
+      "name": "Maya Chen"
+    },
+    {
+      "person_id": "person-alex",
+      "name": "Alex Rivera"
+    }
+  ],
+  "accounts": [
+    {
+      "app_id": "files",
+      "account_id": "files-maya",
+      "owner_person_id": "person-maya"
+    }
+  ],
+  "objects": {
+    "files": [
+      "folder-receipts",
+      "file-receipt"
+    ]
+  }
+}

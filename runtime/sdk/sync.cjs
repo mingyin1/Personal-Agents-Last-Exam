@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..');
+const {baseline:admin}=require('../core/admin-tools.cjs');
 // Offline packages keep generated copies. Authors edit only these canonical sources.
 function packages(){
  const result=[];
@@ -40,7 +41,8 @@ function sync({check=false}={}){
    if(surface.status!=='implemented'||surface.audience.length!==1)continue;
    const role=surface.audience[0];
    if(role==='agent')surface.operations=tools.map(t=>({name:t.name,effect:t.read_only?'read':'write',caller:'agent'}));
-   if(role==='infra')surface.operations=['env.reset','env.load_seed','env.apply_event','env.snapshot','env.event_status','env.validate_bundle'].map(name=>({name,effect:'admin',caller:'infra'}));
+   // Keep portable App declarations unchanged; discover host clock support via tools/list.
+   if(role==='infra')surface.operations=admin.map(name=>({name,effect:'admin',caller:'infra'}));
   }
   if(check){if(JSON.stringify(c)!==JSON.stringify(expected))throw Error('Derived contribution fields drift: '+path.relative(root,file));}
   else fs.writeFileSync(file,JSON.stringify(expected,null,2)+'\n');

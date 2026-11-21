@@ -1,0 +1,12 @@
+{
+  "read": {
+    "name": "contacts.list",
+    "args": {}
+  },
+  "write": {
+    "name": "contacts.create",
+    "args": {
+      "display_name": "Runtime contact"
+    }
+  }
+}

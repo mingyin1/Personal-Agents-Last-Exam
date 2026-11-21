@@ -31,7 +31,7 @@ async function verify(appDirectory,{dependencies=[]}={}){
   check('Agent discovery excludes administrative tools',list.every(t=>!t.name.startsWith('env.')));
   for(const tool of list)equal('Published input/output for '+tool.name,[tool.inputSchema,tool.outputSchema],[pkg.tools.find(t=>t.name===tool.name).inputSchema,pkg.tools.find(t=>t.name===tool.name).outputSchema]);
   const management=(await infra.request('tools/list')).result.tools.map(t=>t.name);
-  equal('Infra exposes exactly the lifecycle interface',management.sort(),['env.reset','env.load_seed','env.apply_event','env.snapshot','env.event_status','env.validate_bundle'].sort());
+  equal('Infra exposes the lifecycle interface and host clock operation',management.sort(),[...require('./core/admin-tools.cjs').operations].sort());
   for(const name of management)check('Agent cannot call '+name,(await agent.call(name,{})).status==='permission_denied');
   const cases=JSON.parse(fs.readFileSync(path.join(pkg.dir,'tests/cases.json'),'utf8'));
   const response=await agent.request('tools/call',{name:cases.read.name,arguments:cases.read.args});

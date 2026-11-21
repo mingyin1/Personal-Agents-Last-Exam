@@ -1,0 +1,168 @@
+{
+  "type": "object",
+  "properties": {
+    "filename": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[^\\\\/\\u0000-\\u001f\\u007f]+$"
+    },
+    "mime_type": {
+      "enum": [
+        "application/pdf",
+        "text/calendar",
+        "text/plain",
+        "image/png",
+        "image/jpeg",
+        "audio/mpeg",
+        "audio/wav",
+        "video/mp4",
+        "application/json"
+      ]
+    },
+    "base64": {
+      "type": "string",
+      "maxLength": 1398104
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "media": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "animated": {
+              "type": "boolean"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "audio": {
+          "type": "object",
+          "properties": {
+            "duration_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "codec": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sample_rate_hz": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "channels": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "video": {
+          "type": "object",
+          "properties": {
+            "duration_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "codec": {
+              "type": "string",
+              "minLength": 1
+            },
+            "width": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fps": {
+              "type": "number",
+              "minimum": 0
+            },
+            "has_audio": {
+              "type": "boolean"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "document": {
+          "type": "object",
+          "properties": {
+            "page_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "text_asset_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "sensor": {
+          "type": "object",
+          "properties": {
+            "device_ref": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$"
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sample_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "coordinate_frame": {
+              "type": "string",
+              "minLength": 1
+            },
+            "missing_value_rule": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "device_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "filename",
+    "mime_type",
+    "base64",
+    "sha256"
+  ],
+  "additionalProperties": false,
+  "$id": "urn:pale:attachment-transfer:1"
+}

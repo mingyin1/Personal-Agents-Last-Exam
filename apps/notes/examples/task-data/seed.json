@@ -1,0 +1,28 @@
+{
+  "account_id": "notes-maya",
+  "owner_person_id": "person-maya",
+  "notes": [
+    {
+      "id": "note-groceries",
+      "account_id": "notes-maya",
+      "created_at": "2026-11-17T08:00:00-08:00",
+      "updated_at": "2026-11-17T08:00:00-08:00",
+      "history": [
+        {
+          "at": "2026-11-17T08:00:00-08:00",
+          "action": "seeded"
+        }
+      ],
+      "title": "Dinner preferences",
+      "body": "Vegetarian dinner for four. Check pantry before buying.",
+      "tags": [
+        "home"
+      ],
+      "pinned": true,
+      "archived": false,
+      "trashed": false,
+      "attachments": [],
+      "revisions": []
+    }
+  ]
+}

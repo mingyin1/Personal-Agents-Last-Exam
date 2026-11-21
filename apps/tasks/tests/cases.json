@@ -1,0 +1,12 @@
+{
+  "read": {
+    "name": "tasks.list",
+    "args": {}
+  },
+  "write": {
+    "name": "tasks.create",
+    "args": {
+      "title": "Runtime task"
+    }
+  }
+}

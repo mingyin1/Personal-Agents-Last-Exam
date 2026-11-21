@@ -1,0 +1,32 @@
+{
+  "account_id": "contacts-maya",
+  "owner_person_id": "person-maya",
+  "contacts": [
+    {
+      "id": "contact-alex",
+      "account_id": "contacts-maya",
+      "created_at": "2026-11-17T08:00:00-08:00",
+      "updated_at": "2026-11-17T08:00:00-08:00",
+      "history": [
+        {
+          "at": "2026-11-17T08:00:00-08:00",
+          "action": "seeded"
+        }
+      ],
+      "display_name": "Alex Rivera",
+      "person_id": "person-alex",
+      "emails": [
+        "alex@example.test"
+      ],
+      "phones": [
+        "+1-202-555-0104"
+      ],
+      "organization": "Example Studio",
+      "groups": [
+        "friends"
+      ],
+      "notes": "Prefers email for scheduling.",
+      "archived": false
+    }
+  ]
+}

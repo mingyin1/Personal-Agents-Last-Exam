@@ -1,0 +1,13 @@
+{
+  "read": {
+    "name": "messages.list",
+    "args": {}
+  },
+  "write": {
+    "name": "messages.send",
+    "args": {
+      "conversation_id": "conversation-home",
+      "text": "Created by MCP"
+    }
+  }
+}

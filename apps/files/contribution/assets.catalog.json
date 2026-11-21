@@ -1,0 +1,56 @@
+{
+  "schema_version": "pale.asset-catalog.v1",
+  "catalog_id": "files-assets",
+  "app_id": "files",
+  "dataset_ref": "dataset.json",
+  "assets": [
+    {
+      "schema_version": "pale.asset-descriptor.v1",
+      "asset_id": "receipt-original",
+      "scope": {
+        "level": "package",
+        "app_id": "files"
+      },
+      "roles": [
+        "content.attachment"
+      ],
+      "subjects": [
+        {
+          "app_id": "files",
+          "account_id": "files-maya",
+          "object_type": "file",
+          "object_id": "file-receipt"
+        }
+      ],
+      "mime_type": "text/plain",
+      "availability": {
+        "status": "ready"
+      },
+      "storage": {
+        "adapter": "storage.file",
+        "path": "assets/receipt.txt",
+        "packaging": "bundled"
+      },
+      "integrity": {
+        "bytes": 82,
+        "sha256": "281017cf79b87632bff8f7fce850cbd976fb90713e25601854d26ac38155336a"
+      },
+      "provenance": {
+        "dataset_id": "files-minimal",
+        "source_ids": [
+          "authored"
+        ]
+      },
+      "publication": "public",
+      "access": {
+        "audience": [
+          "agent"
+        ],
+        "rule": "parent_object"
+      },
+      "media": {},
+      "extensions": []
+    }
+  ],
+  "extensions": []
+}

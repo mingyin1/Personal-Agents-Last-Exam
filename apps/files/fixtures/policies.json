@@ -1,0 +1,22 @@
+{
+  "scenario": {
+    "allow": [
+      "files.list",
+      "files.get",
+      "files.read"
+    ],
+    "constraints": {}
+  },
+  "sandbox": {
+    "allow": [
+      "files.list",
+      "files.get",
+      "files.mkdir",
+      "files.put",
+      "files.move",
+      "files.trash",
+      "files.read"
+    ],
+    "constraints": {}
+  }
+}

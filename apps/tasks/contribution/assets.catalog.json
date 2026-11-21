@@ -1,0 +1,8 @@
+{
+  "schema_version": "pale.asset-catalog.v1",
+  "catalog_id": "tasks-assets",
+  "app_id": "tasks",
+  "dataset_ref": "dataset.json",
+  "assets": [],
+  "extensions": []
+}

@@ -65,6 +65,14 @@ class FakeAPI:
 
 
 class ProposalSyncTests(unittest.TestCase):
+    def test_owner_proposal_is_not_external_reviewer_backlog(self):
+        api = FakeAPI(pr(user={"login": "DavidZWZ", "id": 57624585}), self.task)
+        records = sync.collect(api, self.domains, "main")
+        self.assertEqual(records[0]["review"], "Owner review; no external reviewer required")
+        self.assertIn("0 awaiting initial review", sync.render(records, api.repository))
+        api.pr["user"]["id"] = 17
+        self.assertEqual(sync.collect(api, self.domains, "main")[0]["review"], "Awaiting review")
+
     def setUp(self):
         self.domains = sync.domains_from_readme((ROOT / "README.md").read_text())
         template = (ROOT / "proposals/templates/task-proposal.md").read_text()
