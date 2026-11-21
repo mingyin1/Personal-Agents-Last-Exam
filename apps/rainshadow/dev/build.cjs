@@ -3,17 +3,16 @@
 // Authoring-time generator, never run by the App or the host.
 //   node dev/build.cjs          write tools.json and the App-owned schemas
 //   node dev/build.cjs --check  exit 1 if a generated file differs from dev/contracts.cjs
-// The Core state envelope is taken from the provided template in the public checkout
-// when it is available; otherwise the committed copy is only re-stamped.
+// It reads and writes only files of this package. The Core state envelope
+// (schemas/state.schema.json) is the provided template; this script only re-stamps the
+// App identity and versions in the committed copy.
 const fs = require('node:fs'), path = require('node:path');
 const contracts = require('./contracts.cjs');
 const root = path.resolve(__dirname, '..');
 const json = value => JSON.stringify(value, null, 2) + '\n';
 
 function stateTemplate() {
-  const provided = path.resolve(root, '../../runtime/tests/fixtures/non-mail/noticebox/schemas/state.schema.json');
-  const file = fs.existsSync(provided) ? provided : path.join(root, 'schemas/state.schema.json');
-  return JSON.parse(fs.readFileSync(file, 'utf8'));
+  return JSON.parse(fs.readFileSync(path.join(root, 'schemas/state.schema.json'), 'utf8'));
 }
 
 function outputs() {

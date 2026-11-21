@@ -1,11 +1,16 @@
 'use strict';
 // The activity log, the notice log, quiet hours and the Mail wire message.
-// Rainshadow never delivers anything itself: an Infra-run sender reads released
-// notices from a snapshot and publishes their wire messages through Messaging.
+// A notice is written once, with its release time: the time it was written, or the end of
+// the quiet period it was written in. Nothing is rewritten when that time passes; `held`
+// and `released` are read from the release time and the supplied clock.
+// Rainshadow never delivers anything itself: an Infra-run sender (infra/sender.cjs) reads
+// notices from a snapshot and publishes the stored wire messages through Messaging.
 const { fail, ms, isoAt, localDate, localMinutes, localToInstant, addDays, nextId } = require('./util.cjs');
 const { noticeState } = require('./model.cjs');
 
-// One row for every committed write, event and timer effect. Returns the row's sequence number.
+// One row for every committed Agent write, every applied event and every effect of an event
+// (a notice written, a watch status changed). Time-driven changes run no App code and write
+// no row. Returns the row's sequence number.
 function record(data, row) {
   const seq = (data.activity.length ? data.activity[data.activity.length - 1].seq : 0) + 1;
   const clean = { seq };
@@ -48,38 +53,31 @@ function wireMessage(data, notice, time) {
   };
 }
 
-// Write one notice at event time `at`. Inside quiet hours it is held until they end,
-// unless `bypass` is set (notices for extreme alerts).
+// Write one notice at event time `at`. Inside quiet hours its release time is the end of
+// that quiet period, unless `bypass` is set (notices for extreme alerts); otherwise it is
+// released as it is written. When email notices are on at this moment, the full wire
+// message is stored with the notice, dated at the release time.
 function createNotice(data, at, spec, eventId) {
   const preferences = data.preferences, t = ms(at);
+  const held = !spec.bypass && inQuietHours(preferences, t);
   const notice = {
-    id: nextId(data.notices.map(n => n.id), 'ntc-'), seq: 0, kind: spec.kind, created_at: at, object: spec.object,
+    id: nextId(data.notices.map(n => n.id), 'ntc-'), seq: 0, kind: spec.kind, created_at: at,
+    release_at: held ? isoAt(quietEnd(preferences, t), preferences.timezone) : at, object: spec.object,
     ...(spec.message_id ? { message_id: spec.message_id } : {}),
     place_ids: spec.place_ids,
     ...(spec.severity ? { severity: spec.severity } : {}),
     title: spec.title.slice(0, 200), body: spec.body.slice(0, 2000),
+    cause: { event_id: eventId },
   };
-  const held = !spec.bypass && inQuietHours(preferences, t);
-  if (held) notice.release_at = isoAt(quietEnd(preferences, t), preferences.timezone);
-  else notice.released_at = at;
-  notice.cause = { event_id: eventId };
-  if (!held && preferences.email_notices) notice.wire = wireMessage(data, notice, at);
+  if (preferences.email_notices) notice.wire = wireMessage(data, notice, notice.release_at);
   data.notices.push(notice);
-  notice.seq = record(data, { at, actor: 'event', action: 'notice.created', object_id: notice.id, event_id: eventId, details: { kind: spec.kind, state: held ? 'held' : 'released' } });
+  notice.seq = record(data, { at, actor: 'event', action: 'notice.created', object_id: notice.id, event_id: eventId, details: { kind: spec.kind, release_at: notice.release_at } });
   return notice;
-}
-
-// Timer effect: a held notice whose quiet period is over is released at its release time.
-function releaseNotice(data, notice, eventId) {
-  notice.released_at = notice.release_at;
-  if (data.preferences.email_notices) notice.wire = wireMessage(data, notice, notice.release_at);
-  record(data, { at: notice.release_at, actor: 'timer', action: 'notice.released', object_id: notice.id, event_id: eventId });
 }
 
 function presentNotice(notice, now) {
   return {
-    id: notice.id, kind: notice.kind, state: noticeState(notice, now), created_at: notice.created_at,
-    release_at: notice.release_at ?? null, released_at: notice.released_at ?? (notice.release_at && ms(notice.release_at) <= now ? notice.release_at : notice.release_at ? null : notice.created_at),
+    id: notice.id, kind: notice.kind, state: noticeState(notice, now), created_at: notice.created_at, release_at: notice.release_at,
     object: notice.object, message_id: notice.message_id ?? null, place_ids: notice.place_ids, severity: notice.severity ?? null,
     title: notice.title, body: notice.body, email_copy: notice.wire !== undefined,
   };
@@ -96,4 +94,4 @@ function list(ctx, data, args) {
   return { notices: all.slice(offset, offset + limit).map(({ n }) => presentNotice(n, now)), next_cursor: offset + limit < all.length ? String(offset + limit) : null };
 }
 
-module.exports = { record, inQuietHours, quietEnd, wireMessage, createNotice, releaseNotice, presentNotice, list };
+module.exports = { record, inQuietHours, quietEnd, wireMessage, createNotice, presentNotice, list };

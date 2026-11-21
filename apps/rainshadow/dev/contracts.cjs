@@ -18,7 +18,8 @@ const VARIABLE = ['pop', 'thunder_prob', 'precip', 'wind_gust', 'wind_speed', 't
 const UNIT = ['%', 'mm', 'in', 'km/h', 'mph', 'C', 'F', 'index'];
 const NOTICE_KIND = ['alert.issued', 'alert.updated', 'alert.cancelled', 'watch.triggered', 'watch.cleared'];
 const AQI_CATEGORY = ['Good', 'Moderate', 'Unhealthy for Sensitive Groups', 'Unhealthy', 'Very Unhealthy', 'Hazardous'];
-const EVENTS = ['forecast.issued', 'observation.recorded', 'alert.issued', 'alert.updated', 'alert.cancelled', 'clock.advanced'].map(x => APP + '.' + x);
+// Rainshadow has no clock event: time is the environment's (an event's own `at`, or Core's env.advance_time).
+const EVENTS = ['forecast.issued', 'observation.recorded', 'alert.issued', 'alert.updated', 'alert.cancelled'].map(x => APP + '.' + x);
 
 // ---- builders -------------------------------------------------------------
 const str = (min = 1, max = 200) => ({ type: 'string', minLength: min, maxLength: max });
@@ -68,7 +69,7 @@ const alert = obj({
   messages: arr(alertMessage, { minItems: 1, maxItems: 50 }),
 });
 const quietHours = obj({ enabled: bool, start: hhmm, end: hhmm });
-const preferences = obj({ units: en('metric', 'us'), default_source_id: id, timezone: str(1, 64), quiet_hours: quietHours, email_notices: bool });
+const preferences = obj({ units: en('metric', 'us'), default_source_id: id, default_air_source_id: nullable(id), timezone: str(1, 64), quiet_hours: quietHours, email_notices: bool });
 const alertRule = obj({ categories: arr(en(...CATEGORY), { maxItems: 8, uniqueItems: true }), min_severity: en(...SEVERITY), paused: bool });
 const savedPlace = obj({ place_id: id, label: str(1, 80), alert_rule: alertRule, saved_at: ts });
 const acknowledgement = obj({ alert_id: id, message_id: id, acknowledged_at: ts });
@@ -81,34 +82,37 @@ const match = obj({
 }, []);
 const conditionResult = obj({ index: int(0, 5), evaluable: bool, met: bool, matches: arr(match, { maxItems: 240 }) });
 const issuanceRef = obj({ id, issued_at: ts });
+// What one evaluation used: the weather issuance for hourly conditions, the air-quality
+// issuance for aqi conditions, and the window hours and local dates each covered or missed.
 const evaluation = obj({
   status: en('no_data', 'clear', 'triggered'), evaluated_at: ts,
   cause: obj({ kind: str(1, 60), request_id: callRef, event_id: callRef }, ['kind']),
   issuance: nullable(issuanceRef), aq_issuance: nullable(issuanceRef),
   hours: obj({ considered: int(0, 240), missing: arr(ts, { maxItems: 240 }), frozen: bool }, ['considered', 'missing']),
+  dates: obj({ considered: int(0, 12), missing: arr(date, { maxItems: 12 }) }),
   conditions: arr(conditionResult, { maxItems: 6 }),
 }, ['status', 'evaluated_at']);
 const linkedObject = obj({ app_id: str(1, 100), object_type: str(1, 60), object_id: str(1, 150) }, ['app_id', 'object_id']);
 const watch = obj({
   id, seq: int(0), label: str(1, 80), place_id: id, source_id: id, aq_source_id: id, start: ts, end: ts,
   conditions: arr(condition, { minItems: 1, maxItems: 6 }), linked_object: linkedObject,
-  created_at: ts, updated_at: ts, cancelled_at: ts, ended_at: ts, evaluation,
+  created_at: ts, updated_at: ts, cancelled_at: ts, evaluation,
 }, ['id', 'label', 'place_id', 'source_id', 'start', 'end', 'conditions', 'created_at', 'evaluation']);
 const noticeObject = obj({ type: en('alert', 'watch'), id });
 const notice = obj({
   id, seq: int(0), kind: en(...NOTICE_KIND), created_at: ts, object: noticeObject, message_id: id,
   place_ids: arr(id, { maxItems: 50, uniqueItems: true }), severity: en(...SEVERITY), title: str(1, 200), body: str(1, 2000),
-  release_at: ts, released_at: ts, cause: obj({ event_id: callRef }, []), wire: { type: 'object' },
-}, ['id', 'kind', 'created_at', 'object', 'place_ids', 'title', 'body']);
+  release_at: ts, cause: obj({ event_id: callRef }, []), wire: { type: 'object' },
+}, ['id', 'kind', 'created_at', 'release_at', 'object', 'place_ids', 'title', 'body']);
 const activity = obj({
-  seq: int(1), at: ts, actor: en('agent', 'event', 'timer'), action: str(1, 80), object_id: str(1, 150),
+  seq: int(1), at: ts, actor: en('agent', 'event'), action: str(1, 80), object_id: str(1, 150),
   request_id: callRef, event_id: callRef, details: { type: 'object' },
 }, ['seq', 'at', 'actor', 'action', 'object_id']);
 
 const seed = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
   title: 'Rainshadow account and world records',
-  description: 'History accepted by env.load_seed and kept as App data. World records (zones, places, sources, issuances, observations, alerts) and one account (preferences, saved places, acknowledgements, watches, notices, activity). Every record in a seed counts as already issued.',
+  description: 'History accepted by env.load_seed and kept as App data. World records (zones, places, sources, issuances, observations, alerts) and one account (preferences, saved places, acknowledgements, watches, notices, activity). Every record in a seed counts as already issued. Time-based states are not stored: a notice carries its release time and a watch its window end, and both are read against the environment clock.',
   ...obj({
     account_id: id, owner_person_id: id,
     zones: arr(zone, { maxItems: 200 }), places: arr(place, { maxItems: 200 }), sources: arr(source, { minItems: 1, maxItems: 20 }),
@@ -127,7 +131,7 @@ const cancelMessage = obj({ message_id: id, type: { const: 'cancel' }, sent_at: 
 const events = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
   title: 'Rainshadow incoming events',
-  description: 'Events Infra may apply with env.apply_event. The App clock moves only through these events.',
+  description: 'Events Infra may apply with env.apply_event. Each is handled at its own `at`. There is no clock event: Infra moves time with an event or with Core\'s env.advance_time, which runs no App code.',
   type: 'object',
   oneOf: [
     envelope(EVENTS[0], obj({ issuance_id: id, source_id: id, place_id: id, issued_at: ts, hourly: issuance.properties.hourly, daily: issuance.properties.daily }, ['issuance_id', 'source_id', 'place_id', 'issued_at'])),
@@ -138,7 +142,6 @@ const events = {
     envelope(EVENTS[2], obj({ alert_id: id, source_id: id, category: en(...CATEGORY), zone_ids: alert.properties.zone_ids, message: fullMessage('alert') })),
     envelope(EVENTS[3], obj({ alert_id: id, message: fullMessage('update') })),
     envelope(EVENTS[4], obj({ alert_id: id, message: cancelMessage })),
-    envelope(EVENTS[5], obj({})),
   ],
 };
 
@@ -170,10 +173,10 @@ const alertDetail = obj({
 const watchOut = obj({
   id, label: str(1, 80), status: en('no_data', 'clear', 'triggered', 'ended', 'cancelled'), place: placeRef, source_id: id,
   aq_source_id: nullable(id), start: ts, end: ts, conditions: watch.properties.conditions, linked_object: nullable(linkedObject),
-  created_at: ts, updated_at: nullable(ts), cancelled_at: nullable(ts), ended_at: nullable(ts), evaluation,
+  created_at: ts, updated_at: nullable(ts), cancelled_at: nullable(ts), evaluation,
 });
 const noticeOut = obj({
-  id, kind: en(...NOTICE_KIND), state: en('held', 'released'), created_at: ts, release_at: nullable(ts), released_at: nullable(ts),
+  id, kind: en(...NOTICE_KIND), state: en('held', 'released'), created_at: ts, release_at: ts,
   object: noticeObject, message_id: nullable(id), place_ids: notice.properties.place_ids, severity: nullable(en(...SEVERITY)),
   title: str(1, 200), body: str(1, 2000), email_copy: bool,
 });
@@ -211,7 +214,7 @@ const TOOLS = [
     'List the saved places of this account with their label, alert rule (categories, minimum severity, paused) and the number of open watches. No side effects.',
     {}, [], { places: arr(savedPlaceOut) }),
   tool('sources.list', true, 'forecast sources',
-    'List forecast sources (weather or air quality) and mark the account default weather source. No side effects.',
+    'List forecast sources (weather or air quality). is_default marks the account\'s default weather source and its default air-quality source. No side effects.',
     {}, [], { sources: arr(obj({ ...source.properties, is_default: bool, issuance_count: int(0), latest_issued_at: nullable(ts) })) }),
   tool('forecast.issuances', true, 'place',
     'List the forecast issuances stored for a place, newest first. Each issuance is one source\'s forecast at one issue time. id is the place ID. No side effects.',
@@ -238,7 +241,7 @@ const TOOLS = [
   tool('forecast.daily', true, 'place',
     'Read daily forecast rows for a place from one issuance: headline, summary, high, low and day and night precipitation probability for a weather source, or the air-quality index and its category for an air-quality source. The headline describes the whole day exactly as issued. The window selects the local dates it touches. id is the place ID. No side effects.',
     {
-      id: describe(idArg, 'Place ID.'), start: windowStart, end: windowEnd, source_id: describe(idArg, 'Weather or air-quality source; defaults to the account default source.'),
+      id: describe(idArg, 'Place ID.'), start: windowStart, end: windowEnd, source_id: describe(idArg, 'Weather or air-quality source; defaults to the account\'s default weather source.'),
       issuance_id: describe(idArg, 'A specific issuance for this place instead of the latest.'),
     }, ['id'],
     {
@@ -264,17 +267,17 @@ const TOOLS = [
     'Read one alert thread: every message in order (alert, update, cancel), its current status, the acknowledgement history and the places it affects. id is the alert ID. No side effects.',
     { id: describe(idArg, 'Alert ID.') }, ['id'], { alert: alertDetail }),
   tool('watches.list', true, 'current account',
-    'List the weather watches of this account with their current status and latest evaluation. Ended and cancelled watches are hidden unless include_closed is true. No side effects.',
+    'List the weather watches of this account with their current status and latest evaluation. A watch reads ended once its window end has passed. Ended and cancelled watches are hidden unless include_closed is true. No side effects.',
     { place_id: describe(idArg, 'Only watches on this place.'), include_closed: bool }, [], { watches: arr(watchOut) }),
   tool('watches.get', true, 'watch',
-    'Read one watch: place, window, source, conditions, status and the evaluation record, which names the issuance used and the hours that met a condition. id is the watch ID. No side effects.',
+    'Read one watch: place, window, weather source, air-quality source (when it has an aqi condition), conditions, status and the evaluation record, which names every issuance used, the hours and dates covered or missed and what met each condition. id is the watch ID. No side effects.',
     { id: describe(idArg, 'Watch ID.') }, ['id'], { watch: watchOut }),
   tool('notices.list', true, 'current account',
-    'List the notices Rainshadow wrote for this account, newest first: alert notices for saved places and watch notices. A notice created in quiet hours is held until they end. No side effects.',
+    'List the notices Rainshadow wrote for this account, newest first: alert notices for saved places and watch notices. Every notice has a release time: the time it was written, or the end of the quiet period it was written in. It reads held before that time and released from then on. No side effects.',
     { kind: en(...NOTICE_KIND), state: en('held', 'released'), since: describe(ts, 'Only notices created at or after this time.'), limit: int(1, 100), cursor }, [],
     { notices: arr(noticeOut), next_cursor: nullable(str(1, 100)) }),
   tool('preferences.get', true, 'current account',
-    'Read the account preferences: units, default weather source, home time zone, quiet hours and whether notices are also emailed. No side effects.',
+    'Read the account preferences: units, default weather source, default air-quality source (null when none is set), home time zone, quiet hours and whether notices are also emailed. No side effects.',
     {}, [], { preferences: preferencesOut }),
 
   tool('places.save', false, 'current account',
@@ -289,10 +292,10 @@ const TOOLS = [
     'Remove a saved place and its alert rule. A place that an open watch still uses cannot be removed. id is the place ID. Errors: not_found, place_in_use.',
     { id: describe(idArg, 'Place ID of a saved place.') }, ['id'], { id, removed: { const: true } }),
   tool('preferences.update', false, 'current account',
-    'Change account preferences. Only the fields present in patch change. Units change how values are returned, not what is stored. Quiet hours hold new notices until they end, except notices for extreme alerts. Errors: not_found (unknown default source), invalid_timezone, invalid_window (quiet hours that start and end at the same time).',
+    'Change account preferences. Only the fields present in patch change. Units change how values are returned, not what is stored. Quiet hours hold new notices until they end, except notices for extreme alerts; notices already written keep their release time. default_air_source_id is the air-quality source new watches use for aqi conditions; null clears it. Errors: not_found (an unknown default source, or one of the wrong kind), invalid_timezone, invalid_window (quiet hours that start and end at the same time).',
     {
       patch: obj({
-        units: en('metric', 'us'), default_source_id: idArg, timezone: describe(str(1, 64), 'IANA time zone, for example America/Denver.'),
+        units: en('metric', 'us'), default_source_id: idArg, default_air_source_id: nullable(idArg), timezone: describe(str(1, 64), 'IANA time zone, for example America/Denver.'),
         quiet_hours: obj({ enabled: bool, start: hhmm, end: hhmm }, []), email_notices: bool,
       }, []),
     }, ['patch'],
@@ -302,16 +305,16 @@ const TOOLS = [
     { id: describe(idArg, 'Alert ID.'), message_id: describe(idArg, 'The message that was read; it must be the latest one.') }, ['id', 'message_id'],
     { id, message_id: id, acknowledged_at: ts }),
   tool('watches.create', false, 'place',
-    'Create a weather watch on a saved place: a time window, a forecast source and one to six alternative conditions. Rainshadow evaluates it at once (status no_data, clear or triggered) and again whenever a new issuance or alert message arrives, and writes a notice when the result changes. id is the place ID; the result id is the new watch ID. Errors: not_found, invalid_window (window already over, longer than 10 days, or start not before end), limit_exceeded (more than 20 open watches).',
+    'Create a weather watch on a saved place: a time window, a weather source, an air-quality source when it has an aqi condition, and one to six alternative conditions. Rainshadow evaluates it at once (status no_data, clear or triggered) and again whenever a new issuance from one of its sources or an alert message arrives, and writes a notice when it becomes triggered or goes from triggered to clear. The watch ends when its window ends. id is the place ID; the result id is the new watch ID. Errors: not_found (the place is not saved, a source is unknown or of the wrong kind, or an aqi condition has no air-quality source to use), invalid_window (window already over, longer than 10 days, or start not before end), limit_exceeded (more than 20 open watches), invalid_arguments (aq_source_id without an aqi condition).',
     {
       id: describe(idArg, 'Place ID of a saved place.'), start: windowStart, end: windowEnd, conditions: conditionsIn,
       source_id: describe(idArg, 'Weather source to follow; defaults to the account default source.'),
-      aq_source_id: describe(idArg, 'Air-quality source for aqi conditions; defaults to the first air-quality source.'),
+      aq_source_id: describe(idArg, 'Air-quality source for aqi conditions; defaults to the account\'s default air-quality source. Only for a watch with an aqi condition.'),
       label: str(1, 80), linked_object: describe(linkedObject, 'Optional opaque reference supplied by the caller, for example a Calendar event. Rainshadow never reads it.'),
     }, ['id', 'start', 'end', 'conditions'],
     { id, watch: watchOut }),
   tool('watches.update', false, 'watch',
-    'Change an open watch. Only the fields present in patch change. The watch is evaluated again and no notice is written, because the user caused the change. id is the watch ID. Errors: not_found, invalid_state (the watch is ended or cancelled), invalid_window.',
+    'Change an open watch. Only the fields present in patch change. The watch is evaluated again and no notice is written, because the user caused the change. A watch that loses its last aqi condition drops its air-quality source. id is the watch ID. Errors: not_found, invalid_state (the watch is ended or cancelled), invalid_window, invalid_arguments (an empty patch, or aq_source_id without an aqi condition).',
     {
       id: describe(idArg, 'Watch ID.'),
       patch: obj({ label: str(1, 80), start: windowStart, end: windowEnd, conditions: conditionsIn, source_id: idArg, aq_source_id: idArg, linked_object: nullable(linkedObject) }, []),

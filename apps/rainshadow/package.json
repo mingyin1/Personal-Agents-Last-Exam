@@ -1,5 +1,5 @@
 {
-  "name": "pale-app-rainshadow",
+  "name": "@pale/app-rainshadow",
   "version": "1.0.0",
   "private": true,
   "description": "Rainshadow: synthetic weather forecasts, alerts and personal weather watches for PALE",
@@ -9,6 +9,8 @@
   "scripts": {
     "test": "node --test tests/business.test.cjs",
     "example": "node examples/run.cjs",
+    "test:mcp": "node tests/mcp.integration.cjs",
+    "test:mail": "node tests/mail.integration.cjs",
     "check:fixture": "node dev/check-fixture.cjs",
     "check:contracts": "node dev/build.cjs --check"
   },

@@ -417,7 +417,7 @@
   },
   {
     "name": "rainshadow.sources.list",
-    "description": "List forecast sources (weather or air quality) and mark the account default weather source. No side effects.",
+    "description": "List forecast sources (weather or air quality). is_default marks the account's default weather source and its default air-quality source. No side effects.",
     "scope": "rainshadow.read",
     "resource_target": "forecast sources",
     "read_only": true,
@@ -1310,7 +1310,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 100,
-          "description": "Weather or air-quality source; defaults to the account default source."
+          "description": "Weather or air-quality source; defaults to the account's default weather source."
         },
         "issuance_id": {
           "type": "string",
@@ -2714,7 +2714,7 @@
   },
   {
     "name": "rainshadow.watches.list",
-    "description": "List the weather watches of this account with their current status and latest evaluation. Ended and cancelled watches are hidden unless include_closed is true. No side effects.",
+    "description": "List the weather watches of this account with their current status and latest evaluation. A watch reads ended once its window end has passed. Ended and cancelled watches are hidden unless include_closed is true. No side effects.",
     "scope": "rainshadow.read",
     "resource_target": "current account",
     "read_only": true,
@@ -2996,17 +2996,6 @@
                       }
                     ]
                   },
-                  "ended_at": {
-                    "anyOf": [
-                      {
-                        "type": "null"
-                      },
-                      {
-                        "type": "string",
-                        "format": "date-time"
-                      }
-                    ]
-                  },
                   "evaluation": {
                     "type": "object",
                     "properties": {
@@ -3113,6 +3102,29 @@
                           },
                           "frozen": {
                             "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "considered",
+                          "missing"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "dates": {
+                        "type": "object",
+                        "properties": {
+                          "considered": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 12
+                          },
+                          "missing": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                            },
+                            "maxItems": 12
                           }
                         },
                         "required": [
@@ -3232,7 +3244,6 @@
                   "created_at",
                   "updated_at",
                   "cancelled_at",
-                  "ended_at",
                   "evaluation"
                 ],
                 "additionalProperties": false
@@ -3309,7 +3320,7 @@
   },
   {
     "name": "rainshadow.watches.get",
-    "description": "Read one watch: place, window, source, conditions, status and the evaluation record, which names the issuance used and the hours that met a condition. id is the watch ID. No side effects.",
+    "description": "Read one watch: place, window, weather source, air-quality source (when it has an aqi condition), conditions, status and the evaluation record, which names every issuance used, the hours and dates covered or missed and what met each condition. id is the watch ID. No side effects.",
     "scope": "rainshadow.read",
     "resource_target": "watch",
     "read_only": true,
@@ -3588,17 +3599,6 @@
                     }
                   ]
                 },
-                "ended_at": {
-                  "anyOf": [
-                    {
-                      "type": "null"
-                    },
-                    {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  ]
-                },
                 "evaluation": {
                   "type": "object",
                   "properties": {
@@ -3705,6 +3705,29 @@
                         },
                         "frozen": {
                           "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "considered",
+                        "missing"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "dates": {
+                      "type": "object",
+                      "properties": {
+                        "considered": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "missing": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                          },
+                          "maxItems": 12
                         }
                       },
                       "required": [
@@ -3824,7 +3847,6 @@
                 "created_at",
                 "updated_at",
                 "cancelled_at",
-                "ended_at",
                 "evaluation"
               ],
               "additionalProperties": false
@@ -3900,7 +3922,7 @@
   },
   {
     "name": "rainshadow.notices.list",
-    "description": "List the notices Rainshadow wrote for this account, newest first: alert notices for saved places and watch notices. A notice created in quiet hours is held until they end. No side effects.",
+    "description": "List the notices Rainshadow wrote for this account, newest first: alert notices for saved places and watch notices. Every notice has a release time: the time it was written, or the end of the quiet period it was written in. It reads held before that time and released from then on. No side effects.",
     "scope": "rainshadow.read",
     "resource_target": "current account",
     "read_only": true,
@@ -4007,26 +4029,8 @@
                     "format": "date-time"
                   },
                   "release_at": {
-                    "anyOf": [
-                      {
-                        "type": "null"
-                      },
-                      {
-                        "type": "string",
-                        "format": "date-time"
-                      }
-                    ]
-                  },
-                  "released_at": {
-                    "anyOf": [
-                      {
-                        "type": "null"
-                      },
-                      {
-                        "type": "string",
-                        "format": "date-time"
-                      }
-                    ]
+                    "type": "string",
+                    "format": "date-time"
                   },
                   "object": {
                     "type": "object",
@@ -4103,7 +4107,6 @@
                   "state",
                   "created_at",
                   "release_at",
-                  "released_at",
                   "object",
                   "message_id",
                   "place_ids",
@@ -4199,7 +4202,7 @@
   },
   {
     "name": "rainshadow.preferences.get",
-    "description": "Read the account preferences: units, default weather source, home time zone, quiet hours and whether notices are also emailed. No side effects.",
+    "description": "Read the account preferences: units, default weather source, default air-quality source (null when none is set), home time zone, quiet hours and whether notices are also emailed. No side effects.",
     "scope": "rainshadow.read",
     "resource_target": "current account",
     "read_only": true,
@@ -4257,6 +4260,17 @@
                 "default_source_id": {
                   "type": "string",
                   "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                },
+                "default_air_source_id": {
+                  "anyOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                    }
+                  ]
                 },
                 "timezone": {
                   "type": "string",
@@ -4324,6 +4338,7 @@
               "required": [
                 "units",
                 "default_source_id",
+                "default_air_source_id",
                 "timezone",
                 "quiet_hours",
                 "email_notices",
@@ -5164,7 +5179,7 @@
   },
   {
     "name": "rainshadow.preferences.update",
-    "description": "Change account preferences. Only the fields present in patch change. Units change how values are returned, not what is stored. Quiet hours hold new notices until they end, except notices for extreme alerts. Errors: not_found (unknown default source), invalid_timezone, invalid_window (quiet hours that start and end at the same time).",
+    "description": "Change account preferences. Only the fields present in patch change. Units change how values are returned, not what is stored. Quiet hours hold new notices until they end, except notices for extreme alerts; notices already written keep their release time. default_air_source_id is the air-quality source new watches use for aqi conditions; null clears it. Errors: not_found (an unknown default source, or one of the wrong kind), invalid_timezone, invalid_window (quiet hours that start and end at the same time).",
     "scope": "rainshadow.write",
     "resource_target": "current account",
     "read_only": false,
@@ -5184,6 +5199,18 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 100
+            },
+            "default_air_source_id": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              ]
             },
             "timezone": {
               "type": "string",
@@ -5302,6 +5329,17 @@
                   "type": "string",
                   "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
                 },
+                "default_air_source_id": {
+                  "anyOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+                    }
+                  ]
+                },
                 "timezone": {
                   "type": "string",
                   "minLength": 1,
@@ -5368,6 +5406,7 @@
               "required": [
                 "units",
                 "default_source_id",
+                "default_air_source_id",
                 "timezone",
                 "quiet_hours",
                 "email_notices",
@@ -5622,7 +5661,7 @@
   },
   {
     "name": "rainshadow.watches.create",
-    "description": "Create a weather watch on a saved place: a time window, a forecast source and one to six alternative conditions. Rainshadow evaluates it at once (status no_data, clear or triggered) and again whenever a new issuance or alert message arrives, and writes a notice when the result changes. id is the place ID; the result id is the new watch ID. Errors: not_found, invalid_window (window already over, longer than 10 days, or start not before end), limit_exceeded (more than 20 open watches).",
+    "description": "Create a weather watch on a saved place: a time window, a weather source, an air-quality source when it has an aqi condition, and one to six alternative conditions. Rainshadow evaluates it at once (status no_data, clear or triggered) and again whenever a new issuance from one of its sources or an alert message arrives, and writes a notice when it becomes triggered or goes from triggered to clear. The watch ends when its window ends. id is the place ID; the result id is the new watch ID. Errors: not_found (the place is not saved, a source is unknown or of the wrong kind, or an aqi condition has no air-quality source to use), invalid_window (window already over, longer than 10 days, or start not before end), limit_exceeded (more than 20 open watches), invalid_arguments (aq_source_id without an aqi condition).",
     "scope": "rainshadow.write",
     "resource_target": "place",
     "read_only": false,
@@ -5743,7 +5782,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 100,
-          "description": "Air-quality source for aqi conditions; defaults to the first air-quality source."
+          "description": "Air-quality source for aqi conditions; defaults to the account's default air-quality source. Only for a watch with an aqi condition."
         },
         "label": {
           "type": "string",
@@ -6076,17 +6115,6 @@
                     }
                   ]
                 },
-                "ended_at": {
-                  "anyOf": [
-                    {
-                      "type": "null"
-                    },
-                    {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  ]
-                },
                 "evaluation": {
                   "type": "object",
                   "properties": {
@@ -6193,6 +6221,29 @@
                         },
                         "frozen": {
                           "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "considered",
+                        "missing"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "dates": {
+                      "type": "object",
+                      "properties": {
+                        "considered": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "missing": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                          },
+                          "maxItems": 12
                         }
                       },
                       "required": [
@@ -6312,7 +6363,6 @@
                 "created_at",
                 "updated_at",
                 "cancelled_at",
-                "ended_at",
                 "evaluation"
               ],
               "additionalProperties": false
@@ -6389,7 +6439,7 @@
   },
   {
     "name": "rainshadow.watches.update",
-    "description": "Change an open watch. Only the fields present in patch change. The watch is evaluated again and no notice is written, because the user caused the change. id is the watch ID. Errors: not_found, invalid_state (the watch is ended or cancelled), invalid_window.",
+    "description": "Change an open watch. Only the fields present in patch change. The watch is evaluated again and no notice is written, because the user caused the change. A watch that loses its last aqi condition drops its air-quality source. id is the watch ID. Errors: not_found, invalid_state (the watch is ended or cancelled), invalid_window, invalid_arguments (an empty patch, or aq_source_id without an aqi condition).",
     "scope": "rainshadow.write",
     "resource_target": "watch",
     "read_only": false,
@@ -6852,17 +6902,6 @@
                     }
                   ]
                 },
-                "ended_at": {
-                  "anyOf": [
-                    {
-                      "type": "null"
-                    },
-                    {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  ]
-                },
                 "evaluation": {
                   "type": "object",
                   "properties": {
@@ -6969,6 +7008,29 @@
                         },
                         "frozen": {
                           "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "considered",
+                        "missing"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "dates": {
+                      "type": "object",
+                      "properties": {
+                        "considered": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "missing": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                          },
+                          "maxItems": 12
                         }
                       },
                       "required": [
@@ -7088,7 +7150,6 @@
                 "created_at",
                 "updated_at",
                 "cancelled_at",
-                "ended_at",
                 "evaluation"
               ],
               "additionalProperties": false
@@ -7475,17 +7536,6 @@
                     }
                   ]
                 },
-                "ended_at": {
-                  "anyOf": [
-                    {
-                      "type": "null"
-                    },
-                    {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  ]
-                },
                 "evaluation": {
                   "type": "object",
                   "properties": {
@@ -7592,6 +7642,29 @@
                         },
                         "frozen": {
                           "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "considered",
+                        "missing"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "dates": {
+                      "type": "object",
+                      "properties": {
+                        "considered": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 12
+                        },
+                        "missing": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                          },
+                          "maxItems": 12
                         }
                       },
                       "required": [
@@ -7711,7 +7784,6 @@
                 "created_at",
                 "updated_at",
                 "cancelled_at",
-                "ended_at",
                 "evaluation"
               ],
               "additionalProperties": false

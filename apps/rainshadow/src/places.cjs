@@ -60,7 +60,8 @@ function sources(ctx, data) {
     sources: data.sources.map(s => {
       const mine = data.issuances.filter(i => i.source_id === s.id);
       const latest = mine.reduce((best, i) => (!best || ms(i.issued_at) > ms(best.issued_at) ? i : best), null);
-      return { ...s, is_default: s.id === data.preferences.default_source_id, issuance_count: mine.length, latest_issued_at: latest ? latest.issued_at : null };
+      const isDefault = s.id === data.preferences.default_source_id || s.id === data.preferences.default_air_source_id;
+      return { ...s, is_default: isDefault, issuance_count: mine.length, latest_issued_at: latest ? latest.issued_at : null };
     }),
   };
 }
@@ -112,6 +113,8 @@ function updatePreferences(ctx, data, args) {
   if (!changed.length) fail('invalid_arguments', 'patch names no field to change.');
   if (patch.units !== undefined) p.units = patch.units;
   if (patch.default_source_id !== undefined) p.default_source_id = needSource(ix, data, patch.default_source_id, 'weather').id;
+  // The default air-quality source is what a new watch with an aqi condition uses; null clears it.
+  if (patch.default_air_source_id !== undefined) p.default_air_source_id = patch.default_air_source_id === null ? null : needSource(ix, data, patch.default_air_source_id, 'air_quality').id;
   if (patch.timezone !== undefined) {
     if (!validTimeZone(patch.timezone)) fail('invalid_timezone', 'Unknown time zone ' + patch.timezone + '. Use an IANA name such as America/Denver.');
     p.timezone = patch.timezone;

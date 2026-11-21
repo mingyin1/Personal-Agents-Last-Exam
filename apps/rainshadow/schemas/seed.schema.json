@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Rainshadow account and world records",
-  "description": "History accepted by env.load_seed and kept as App data. World records (zones, places, sources, issuances, observations, alerts) and one account (preferences, saved places, acknowledgements, watches, notices, activity). Every record in a seed counts as already issued.",
+  "description": "History accepted by env.load_seed and kept as App data. World records (zones, places, sources, issuances, observations, alerts) and one account (preferences, saved places, acknowledgements, watches, notices, activity). Every record in a seed counts as already issued. Time-based states are not stored: a notice carries its release time and a watch its window end, and both are read against the environment clock.",
   "type": "object",
   "properties": {
     "account_id": {
@@ -529,6 +529,17 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
         },
+        "default_air_source_id": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}$"
+            }
+          ]
+        },
         "timezone": {
           "type": "string",
           "minLength": 1,
@@ -563,6 +574,7 @@
       "required": [
         "units",
         "default_source_id",
+        "default_air_source_id",
         "timezone",
         "quiet_hours",
         "email_notices"
@@ -830,10 +842,6 @@
             "type": "string",
             "format": "date-time"
           },
-          "ended_at": {
-            "type": "string",
-            "format": "date-time"
-          },
           "evaluation": {
             "type": "object",
             "properties": {
@@ -940,6 +948,29 @@
                   },
                   "frozen": {
                     "type": "boolean"
+                  }
+                },
+                "required": [
+                  "considered",
+                  "missing"
+                ],
+                "additionalProperties": false
+              },
+              "dates": {
+                "type": "object",
+                "properties": {
+                  "considered": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 12
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                    },
+                    "maxItems": 12
                   }
                 },
                 "required": [
@@ -1141,10 +1172,6 @@
             "type": "string",
             "format": "date-time"
           },
-          "released_at": {
-            "type": "string",
-            "format": "date-time"
-          },
           "cause": {
             "type": "object",
             "properties": {
@@ -1165,6 +1192,7 @@
           "id",
           "kind",
           "created_at",
+          "release_at",
           "object",
           "place_ids",
           "title",
@@ -1190,8 +1218,7 @@
           "actor": {
             "enum": [
               "agent",
-              "event",
-              "timer"
+              "event"
             ]
           },
           "action": {

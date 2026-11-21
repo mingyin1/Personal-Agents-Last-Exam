@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Rainshadow incoming events",
-  "description": "Events Infra may apply with env.apply_event. The App clock moves only through these events.",
+  "description": "Events Infra may apply with env.apply_event. Each is handled at its own `at`. There is no clock event: Infra moves time with an event or with Core's env.advance_time, which runs no App code.",
   "type": "object",
   "oneOf": [
     {
@@ -648,36 +648,6 @@
             "alert_id",
             "message"
           ],
-          "additionalProperties": false
-        }
-      },
-      "required": [
-        "event_id",
-        "at",
-        "operation",
-        "payload"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": {
-        "event_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 100
-        },
-        "at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "operation": {
-          "const": "rainshadow.clock.advanced"
-        },
-        "payload": {
-          "type": "object",
-          "properties": {},
-          "required": [],
           "additionalProperties": false
         }
       },

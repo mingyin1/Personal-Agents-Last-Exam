@@ -1,7 +1,10 @@
 'use strict';
-// W4: weather watches. A watch is a saved place, a time window, a source and one to six
-// alternative conditions. It is evaluated when it is created or edited and whenever new
-// information arrives; time alone only ends it.
+// W4: weather watches. A watch is a saved place, a time window, a weather source, an
+// air-quality source when it has an aqi condition, and one to six alternative conditions.
+// It is evaluated when it is created or edited and whenever new information arrives (an
+// issuance from one of its two sources for its place, or an alert message for its zones).
+// Time alone only ends it, and that is never stored: a watch is open while the supplied
+// time is before its window end (model.watchOpen).
 const { DAY, fail, ms, isoAt, hoursBetween, datesBetween, nextId } = require('./util.cjs');
 const { index, issuancesOf, latestMessage, effectiveMessage, alertOpen, sharesZone, watchOpen, watchStatus } = require('./model.cjs');
 const { VARIABLES, defaultUnit, inUnit, meets, round, severityRank } = require('./units.cjs');
@@ -29,7 +32,7 @@ function evaluate(data, watch, at, cause, previous) {
   const hourlyIdx = [], aqiIdx = [], alertIdx = [];
   watch.conditions.forEach((c, i) => (c.variable === 'alert' ? alertIdx : c.variable === 'aqi' ? aqiIdx : hourlyIdx).push(i));
   const results = watch.conditions.map((c, i) => ({ index: i, evaluable: false, met: false, matches: [] }));
-  let issuanceRef = null, aqRef = null, hours = { considered: 0, missing: [] };
+  let issuanceRef = null, aqRef = null, hours = { considered: 0, missing: [] }, days = { considered: 0, missing: [] };
 
   if (hourlyIdx.length) {
     const remaining = hoursBetween(start, end, tz).filter(h => h >= now);
@@ -62,6 +65,7 @@ function evaluate(data, watch, at, cause, previous) {
     const rows = new Map(((issuance && issuance.daily) ?? []).map(r => [r.date, r]));
     const covered = dates.filter(d => rows.has(d));
     if (issuance) aqRef = { id: issuance.id, issued_at: issuance.issued_at };
+    days = { considered: covered.length, missing: dates.filter(d => !rows.has(d)) };
     for (const i of aqiIdx) {
       const c = watch.conditions[i], r = results[i];
       r.evaluable = covered.length > 0;
@@ -90,15 +94,14 @@ function evaluate(data, watch, at, cause, previous) {
 
   const forecast = [...hourlyIdx, ...aqiIdx];
   const status = results.some(r => r.met) ? 'triggered' : forecast.length && forecast.every(i => !results[i].evaluable) ? 'no_data' : 'clear';
-  return { status, evaluated_at: at, cause, issuance: issuanceRef, aq_issuance: aqRef, hours, conditions: results };
+  return { status, evaluated_at: at, cause, issuance: issuanceRef, aq_issuance: aqRef, hours, dates: days, conditions: results };
 }
 
 function present(data, ix, watch, now) {
-  const ended = watch.ended_at ?? (!watch.cancelled_at && ms(watch.end) <= now ? watch.end : null);
   return {
     id: watch.id, label: watch.label, status: watchStatus(watch, now), place: placeRef(ix.places.get(watch.place_id)), source_id: watch.source_id,
     aq_source_id: watch.aq_source_id ?? null, start: watch.start, end: watch.end, conditions: watch.conditions, linked_object: watch.linked_object ?? null,
-    created_at: watch.created_at, updated_at: watch.updated_at ?? null, cancelled_at: watch.cancelled_at ?? null, ended_at: ended, evaluation: watch.evaluation,
+    created_at: watch.created_at, updated_at: watch.updated_at ?? null, cancelled_at: watch.cancelled_at ?? null, evaluation: watch.evaluation,
   };
 }
 function needWatch(ix, id) {
@@ -111,13 +114,18 @@ function checkWindow(start, end, now) {
   if (ms(end) <= now) fail('invalid_window', 'The window is already over.');
   if (ms(end) - ms(start) > MAX_WINDOW) fail('invalid_window', 'A watch window can cover at most 10 days.');
 }
-// aqi conditions need an air-quality source: the one named, or the first one stored.
-function airSource(ix, data, conditions, named) {
+// A watch names an air-quality source exactly when it has an aqi condition: the one named
+// in this call, else the one it already has (`kept`), else the account's default.
+function airSource(ix, data, conditions, named, kept) {
+  if (!conditions.some(c => c.variable === 'aqi')) {
+    if (named !== undefined) fail('invalid_arguments', 'aq_source_id applies only to a watch with an aqi condition.');
+    return undefined;
+  }
   if (named !== undefined) return needSource(ix, data, named, 'air_quality').id;
-  if (!conditions.some(c => c.variable === 'aqi')) return undefined;
-  const first = data.sources.find(s => s.kind === 'air_quality');
-  if (!first) fail('not_found', 'No air-quality source is stored, so an aqi condition cannot be watched.');
-  return first.id;
+  if (kept !== undefined) return kept;
+  const fallback = data.preferences.default_air_source_id;
+  if (fallback === null) fail('not_found', 'This account has no default air-quality source. Pass aq_source_id (see sources.list) or set default_air_source_id with preferences.update.');
+  return fallback;
 }
 const cause = (kind, args) => ({ kind, ...(args.request_id === undefined ? {} : { request_id: args.request_id }) });
 
@@ -159,8 +167,7 @@ function update(ctx, data, args) {
   if (patch.label !== undefined) watch.label = cleanLabel(patch.label);
   if (patch.source_id !== undefined) watch.source_id = needSource(ix, data, patch.source_id, 'weather').id;
   if (patch.conditions !== undefined) watch.conditions = normalizeConditions(patch.conditions, data.preferences.units);
-  const keep = watch.conditions.some(c => c.variable === 'aqi') ? watch.aq_source_id : undefined;
-  const aq = airSource(ix, data, watch.conditions, patch.aq_source_id ?? keep);
+  const aq = airSource(ix, data, watch.conditions, patch.aq_source_id, watch.aq_source_id);
   if (aq === undefined) delete watch.aq_source_id; else watch.aq_source_id = aq;
   if (patch.start !== undefined) watch.start = patch.start;
   if (patch.end !== undefined) watch.end = patch.end;
@@ -188,16 +195,24 @@ function describe(watch, result) {
   return c.variable + ' ' + m.value + unit + ' ' + (m.start ? 'at ' + m.start : 'on ' + m.date) + ' meets ' + c.variable + (c.op === 'lte' ? ' <= ' : ' >= ') + c.value + unit;
 }
 
-// New information arrived for this watch at event time `at`. A change into or out of
-// `triggered` writes one notice; other status changes are recorded without a notice.
-function reevaluate(data, watch, at, kind, eventId) {
+// New information arrived for this watch at event time `at`. A change into `triggered`, or
+// from `triggered` to `clear`, writes one notice; any other status change (between `clear`
+// and `no_data`, or from `triggered` to `no_data`) is recorded in the activity log only.
+// `news` says what arrived: { source_id } for an issuance, { alert } for an alert message.
+function reevaluate(data, watch, at, kind, eventId, news) {
   const previous = watch.evaluation, next = evaluate(data, watch, at, { kind, event_id: eventId }, previous);
   if (!next) return;
   watch.evaluation = next;
   if (next.status === previous.status) return;
   record(data, { at, actor: 'event', action: 'watch.status_changed', object_id: watch.id, event_id: eventId, details: { from: previous.status, to: next.status } });
-  const ix = index(data), place = ix.places.get(watch.place_id), source = ix.sources.get(watch.source_id);
-  const basis = next.issuance ? source.name + ' forecast issued ' + next.issuance.issued_at : 'Latest information';
+  const ix = index(data), place = ix.places.get(watch.place_id);
+  // The notice names the information the evaluation used from the source that just spoke.
+  let basis = 'Latest information';
+  if (news.alert) basis = ix.sources.get(news.alert.source_id).name + ' alert message ' + latestMessage(news.alert).message_id;
+  else {
+    const used = news.source_id === watch.aq_source_id ? next.aq_issuance : next.issuance;
+    if (used) basis = ix.sources.get(news.source_id).name + ' forecast issued ' + used.issued_at;
+  }
   if (next.status === 'triggered') {
     const met = next.conditions.filter(r => r.met), all = met.flatMap(r => r.matches);
     const tally = [['hour', 'start'], ['day', 'date'], ['alert', 'alert_id']].map(([word, key]) => [word, new Set(all.filter(m => m[key] !== undefined).map(m => m[key])).size])

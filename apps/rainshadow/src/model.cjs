@@ -36,14 +36,16 @@ const alertOpen = (thread, now) => ['upcoming', 'active'].includes(alertStatus(t
 const sharesZone = (place, thread) => place.zone_ids.some(z => thread.zone_ids.includes(z));
 const isAcknowledged = (data, thread) => data.acknowledgements.some(a => a.alert_id === thread.id && a.message_id === latestMessage(thread).message_id);
 
-const watchOpen = (watch, now) => !watch.cancelled_at && !watch.ended_at && ms(watch.end) > now;
+// Time-based states are never stored. A watch is open until it is cancelled or its window
+// end passes; a notice is held until its release time passes. Every read, every write check
+// and the Infra-run sender derive them from the supplied time in this one place.
+const watchOpen = (watch, now) => !watch.cancelled_at && ms(watch.end) > now;
 function watchStatus(watch, now) {
   if (watch.cancelled_at) return 'cancelled';
-  if (watch.ended_at || ms(watch.end) <= now) return 'ended';
+  if (ms(watch.end) <= now) return 'ended';
   return watch.evaluation.status;
 }
-// A notice with release_at was created in quiet hours; it is held until that time.
-const noticeState = (notice, now) => (!notice.released_at && notice.release_at && ms(notice.release_at) > now ? 'held' : 'released');
+const noticeState = (notice, now) => (ms(notice.release_at) > now ? 'held' : 'released');
 
 // ---- seed / state validation ------------------------------------------------------------------
 function validateSeed(ctx, data) {
@@ -116,6 +118,7 @@ function validateSeed(ctx, data) {
 
   const prefs = data.preferences, defaultSource = ix.sources.get(prefs.default_source_id);
   if (!defaultSource || defaultSource.kind !== 'weather') bad('The default source must be a weather source.');
+  if (prefs.default_air_source_id !== null && ix.sources.get(prefs.default_air_source_id)?.kind !== 'air_quality') bad('The default air-quality source must be an air-quality source, or null.');
   if (!validTimeZone(prefs.timezone)) bad('The account time zone is unknown.');
   if (prefs.quiet_hours.start === prefs.quiet_hours.end) bad('Quiet hours cannot start and end at the same time.');
 
@@ -136,6 +139,7 @@ function validateSeed(ctx, data) {
     if (!ix.places.has(w.place_id)) bad('Watch ' + w.id + ' names an unknown place.');
     if (!source || source.kind !== 'weather') bad('Watch ' + w.id + ' needs a weather source.');
     if (w.aq_source_id !== undefined && ix.sources.get(w.aq_source_id)?.kind !== 'air_quality') bad('Watch ' + w.id + ' names an unknown air-quality source.');
+    if (w.conditions.some(c => c.variable === 'aqi') !== (w.aq_source_id !== undefined)) bad('Watch ' + w.id + ': a watch names an air-quality source exactly when it has an aqi condition.');
     if (ms(w.start) >= ms(w.end)) bad('Watch ' + w.id + ': start must be before end.');
     for (const c of w.conditions) {
       if (c.variable !== 'alert' && !VARIABLES[c.variable].units.includes(c.unit)) bad('Watch ' + w.id + ': unit ' + c.unit + ' does not fit ' + c.variable + '.');
@@ -149,6 +153,7 @@ function validateSeed(ctx, data) {
       if (!thread || (n.message_id !== undefined && !thread.messages.some(m => m.message_id === n.message_id))) bad('Notice ' + n.id + ' names an unknown alert message.');
     } else if (!ix.watches.has(n.object.id)) bad('Notice ' + n.id + ' names an unknown watch.');
     if (n.place_ids.some(p => !ix.places.has(p))) bad('Notice ' + n.id + ' names an unknown place.');
+    if (ms(n.release_at) < ms(n.created_at)) bad('Notice ' + n.id + ': the release time cannot be before the creation time.');
   }
 
   let seq = 0;

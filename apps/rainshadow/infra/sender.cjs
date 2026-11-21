@@ -1,66 +1,53 @@
-#!/usr/bin/env node
 'use strict';
-// Infra-run sender for Rainshadow notices. It is not part of the App and is never given
-// to the Agent. It reads released notices from an Infra snapshot of Rainshadow and
-// publishes their stored wire messages through Messaging (`router.publish`). It never
-// writes into Rainshadow or into another App: whether a message reaches Mail is decided
-// by Messaging from the run's bindings and grants, and the receipt comes from the receiver.
+// Infra-run sender for Rainshadow notices: an outbound adapter, in the pattern of Mail's
+// src/publisher.cjs. It is not part of the App's business entrypoint and is never given to
+// the Agent. Infra runs it with its own trusted connections and supplies both clients:
 //
-//   node apps/rainshadow/infra/sender.cjs --config ROUTER_CONFIG --run RUN --state-dir DIR
+//   source  an Infra MCP client of this Rainshadow instance (`call(name, args)`)
+//   router  a publisher client of Messaging for this package (`call('router.publish', ...)`)
 //
-// The config is an Infra messaging config (see router.config.example.json) whose publisher
-// is this package. Only notices released after the loaded baseline time are sent: notices
-// that were already in the seed are history. A notice is published once per sender log
-// (<state-dir>/<run>/rainshadow.sender.json); Messaging also deduplicates identical retries.
-const fs = require('node:fs'), path = require('node:path');
+// It imports nothing outside this file. It reads notices through `env.snapshot`, treats a
+// notice as released once the snapshot's `virtual_now` has reached its release time, and
+// publishes the wire message that the App stored with the notice. Whether a message reaches
+// Mail is decided by Messaging from the run's bindings and grants, and the receipt comes
+// from the receiver. The sender never writes into Rainshadow or into another App, so no
+// cross-App transaction is assumed.
+//
+// Time needs no App event: a notice held at 23:10 with release time 07:00 is published by
+// the first run of this adapter after Infra has moved the clock to 07:00 or later, whether
+// that was an event or Core's `env.advance_time`.
+//
+// What counts as already sent:
+//   - Notices that were in the loaded seed are history, unless they were still held at the
+//     time the seed was loaded; those are published once their release time has passed.
+//   - `sent` is the caller's own log ({ [notice_id]: receipt summary }). Pass it back on the
+//     next run so that nothing is published twice; Messaging also returns the first receipt
+//     for an identical retry inside one router session.
 
-// Notices to dispatch: built wire message, released after the baseline, not yet in `sent`.
+const instant = value => Date.parse(value);
+
+// Notices to dispatch now: a stored wire message, release time reached, not history and not in `sent`.
 function pending(snapshot, sent = {}) {
-  const baseline = Date.parse(snapshot.initial_virtual_now ?? snapshot.virtual_now);
-  return snapshot.data.notices.filter(n => n.wire !== undefined && n.released_at !== undefined && Date.parse(n.released_at) > baseline && sent[n.id] === undefined);
+  const now = instant(snapshot.virtual_now), loadedAt = instant(snapshot.initial_virtual_now ?? snapshot.virtual_now);
+  const history = new Set(((snapshot.initial_data && snapshot.initial_data.notices) || []).map(n => n.id));
+  return snapshot.data.notices.filter(n => n.wire !== undefined && instant(n.release_at) <= now
+    && (!history.has(n.id) || instant(n.release_at) > loadedAt) && sent[n.id] === undefined);
 }
 
-// `source` is an Infra MCP client of Rainshadow, `router` a publisher client of Messaging.
-// Stops at the first result that is not committed, so nothing is skipped silently.
+// Publishes every pending notice in order and stops at the first result that is not
+// committed, so nothing is skipped silently. Returns the results and the updated log.
 async function publishReleased({ source, router, sent = {} }) {
-  const snapshot = (await source.call('env.snapshot')).snapshot, results = [];
+  const read = await source.call('env.snapshot');
+  if (read.status !== 'ok') return { stage: 'source_read', result: read, results: [], sent };
+  const snapshot = read.snapshot, results = [];
   for (const notice of pending(snapshot, sent)) {
     const request_id = 'rainshadow:' + snapshot.epoch + ':' + notice.id;
     const result = await router.call('router.publish', { request_id, message: notice.wire });
     results.push({ notice_id: notice.id, request_id, result });
-    if (result.status !== 'committed') break;
+    if (result.status !== 'committed') return { stage: 'router_rejected', results, sent };
     sent[notice.id] = { request_id, event_id: result.event_id, target: result.target, committed_at: result.committed_at };
   }
-  return { results, sent };
-}
-
-async function main() {
-  const options = {};
-  for (let i = 2; i < process.argv.length; i += 2) {
-    const key = process.argv[i], value = process.argv[i + 1];
-    if (!['--config', '--run', '--state-dir'].includes(key) || !value) throw Error('Usage: node apps/rainshadow/infra/sender.cjs --config ROUTER_CONFIG --run RUN --state-dir DIR');
-    options[key.slice(2)] = value;
-  }
-  if (!options.config || !options.run || !options['state-dir']) throw Error('--config, --run and --state-dir are required');
-  const appDir = path.resolve(__dirname, '..'), runtime = path.resolve(appDir, '../../runtime'), stateDir = path.resolve(options['state-dir']);
-  const { Client } = require(path.join(runtime, 'client.cjs')), { prepare } = require(path.join(runtime, 'prepare.cjs'));
-  const prepared = prepare(appDir), clients = [];
-  const log = path.join(stateDir, options.run, 'rainshadow.sender.json');
-  try {
-    const source = new Client('rainshadow', 'infra', options.run, stateDir, 'rainshadow-sender', { registry: prepared.registry });
-    clients.push(source); await source.initialize();
-    const router = new Client(null, null, null, null, 'rainshadow-sender', { commandArgs: [path.join(runtime, 'messaging/service.cjs'), '--config', path.resolve(options.config), '--publisher', 'rainshadow', '--run', options.run, '--state-dir', stateDir] });
-    clients.push(router); await router.initialize();
-    const sent = fs.existsSync(log) ? JSON.parse(fs.readFileSync(log, 'utf8')) : {};
-    const out = await publishReleased({ source, router, sent });
-    fs.writeFileSync(log, JSON.stringify(out.sent, null, 2) + '\n', { mode: 0o600 });
-    console.log(JSON.stringify({ published: out.results.filter(r => r.result.status === 'committed').length, results: out.results }, null, 2));
-    if (out.results.some(r => r.result.status !== 'committed')) process.exitCode = 1;
-  } finally {
-    await Promise.allSettled(clients.map(c => c.close()));
-    prepared.cleanup();
-  }
+  return { stage: results.length ? 'delivered' : 'nothing_pending', virtual_now: snapshot.virtual_now, results, sent };
 }
 
 module.exports = { pending, publishReleased };
-if (require.main === module) main().catch(e => { console.error(e.message); process.exitCode = 1; });

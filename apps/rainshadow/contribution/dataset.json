@@ -17,7 +17,7 @@
       "collection": null,
       "generation": {
         "method": "deterministic script, no random numbers",
-        "tool": "apps/rainshadow/dev/build-fixture.cjs",
+        "tool": "dev/build-fixture.cjs",
         "tool_version": "1",
         "seed": null,
         "parameters": {

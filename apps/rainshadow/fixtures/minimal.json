@@ -2676,6 +2676,7 @@
  "preferences": {
   "units": "metric",
   "default_source_id": "src-pfo",
+  "default_air_source_id": "src-aqb",
   "timezone": "America/Denver",
   "quiet_hours": {"enabled": true, "start": "22:00", "end": "07:00"},
   "email_notices": true
@@ -2718,7 +2719,7 @@
  "watches": [
   {
    "id": "w-0001",
-   "seq": 20,
+   "seq": 18,
    "label": "Drive up Thursday",
    "place_id": "pl-cinderhorn-pass",
    "source_id": "src-pfo",
@@ -2738,6 +2739,10 @@
      "considered": 5,
      "missing": []
     },
+    "dates": {
+     "considered": 0,
+     "missing": []
+    },
     "conditions": [
      {
       "index": 0,
@@ -2752,12 +2757,11 @@
       ]
      }
     ]
-   },
-   "ended_at": "2026-11-19T20:00:00-07:00"
+   }
   },
   {
    "id": "w-0002",
-   "seq": 74,
+   "seq": 69,
    "label": "Saturday hike",
    "place_id": "pl-wren-lake",
    "source_id": "src-pfo",
@@ -2767,15 +2771,19 @@
     {"variable": "pop", "op": "gte", "value": 40, "unit": "%"},
     {"variable": "thunder_prob", "op": "gte", "value": 20, "unit": "%"}
    ],
-   "created_at": "2026-11-20T16:00:00-07:00",
+   "created_at": "2026-11-20T15:00:00-08:00",
    "evaluation": {
     "status": "clear",
-    "evaluated_at": "2026-11-20T16:00:00-07:00",
+    "evaluated_at": "2026-11-20T15:00:00-08:00",
     "cause": {"kind": "create", "request_id": "seed-req-060"},
     "issuance": {"id": "iss-pfo-wren-3", "issued_at": "2026-11-20T15:00:00-07:00"},
     "aq_issuance": null,
     "hours": {
      "considered": 3,
+     "missing": []
+    },
+    "dates": {
+     "considered": 0,
      "missing": []
     },
     "conditions": [
@@ -2796,7 +2804,7 @@
   },
   {
    "id": "w-0003",
-   "seq": 76,
+   "seq": 70,
    "label": "Mom's walk",
    "place_id": "pl-marrowby",
    "source_id": "src-pfo",
@@ -2816,6 +2824,10 @@
     "aq_issuance": {"id": "aq-marrow-3", "issued_at": "2026-11-20T10:00:00-08:00"},
     "hours": {
      "considered": 0,
+     "missing": []
+    },
+    "dates": {
+     "considered": 1,
      "missing": []
     },
     "conditions": [
@@ -2841,13 +2853,13 @@
    "seq": 8,
    "kind": "alert.issued",
    "created_at": "2026-11-18T12:00:00-07:00",
+   "release_at": "2026-11-18T12:00:00-07:00",
    "object": {"type": "alert", "id": "al-0001"},
    "message_id": "al-0001-m1",
    "place_ids": ["pl-cinderhorn-pass"],
    "severity": "moderate",
    "title": "Winter Weather Advisory for Cinderhorn Pass (saved as Ski cabin road)",
    "body": "Public Forecast Office issued a Winter Weather Advisory (severity: moderate) for zone z-cinder. In effect 2026-11-18T18:00:00-07:00 to 2026-11-19T10:00:00-07:00. Open Rainshadow for the full text.",
-   "released_at": "2026-11-18T12:00:00-07:00",
    "cause": {"event_id": "seed-ev-007"},
    "wire": {
     "specversion": "1.0",
@@ -2876,13 +2888,13 @@
    "seq": 10,
    "kind": "alert.issued",
    "created_at": "2026-11-19T09:00:00-07:00",
+   "release_at": "2026-11-19T09:00:00-07:00",
    "object": {"type": "alert", "id": "al-0002"},
    "message_id": "al-0002-m1",
    "place_ids": ["pl-cinderhorn-pass"],
    "severity": "moderate",
    "title": "Wind Advisory for Cinderhorn Pass (saved as Ski cabin road)",
    "body": "Public Forecast Office issued a Wind Advisory (severity: moderate) for zone z-tallow-high. In effect 2026-11-20T12:00:00-07:00 to 2026-11-21T00:00:00-07:00. Open Rainshadow for the full text.",
-   "released_at": "2026-11-19T09:00:00-07:00",
    "cause": {"event_id": "seed-ev-008"},
    "wire": {
     "specversion": "1.0",
@@ -2908,14 +2920,14 @@
   },
   {
    "id": "ntc-0003",
-   "seq": 25,
+   "seq": 23,
    "kind": "watch.triggered",
    "created_at": "2026-11-19T15:00:00-07:00",
+   "release_at": "2026-11-19T15:00:00-07:00",
    "object": {"type": "watch", "id": "w-0001"},
    "place_ids": ["pl-cinderhorn-pass"],
    "title": "Watch triggered: Drive up Thursday (Cinderhorn Pass)",
    "body": "Public Forecast Office forecast issued 2026-11-19T15:00:00-07:00: wind_gust 62 km/h at 2026-11-19T15:00:00-07:00 meets wind_gust >= 60 km/h. In all, 5 hours in the watch window (2026-11-19T15:00:00-07:00 to 2026-11-19T20:00:00-07:00) meet a condition. Open Rainshadow for details.",
-   "released_at": "2026-11-19T15:00:00-07:00",
    "cause": {"event_id": "seed-ev-019"},
    "wire": {
     "specversion": "1.0",
@@ -2941,16 +2953,16 @@
   },
   {
    "id": "ntc-0004",
-   "seq": 30,
+   "seq": 28,
    "kind": "alert.issued",
    "created_at": "2026-11-19T16:00:00-08:00",
+   "release_at": "2026-11-19T16:00:00-08:00",
    "object": {"type": "alert", "id": "al-0003"},
    "message_id": "al-0003-m1",
    "place_ids": ["pl-marrowby"],
    "severity": "moderate",
    "title": "Air Quality Alert for Marrowby (saved as Mom's house)",
    "body": "Regional Air Board issued a Air Quality Alert (severity: moderate) for zone z-saltgrass-coast. In effect 2026-11-19T16:00:00-08:00 to 2026-11-21T12:00:00-08:00. Open Rainshadow for the full text.",
-   "released_at": "2026-11-19T16:00:00-08:00",
    "cause": {"event_id": "seed-ev-023"},
    "wire": {
     "specversion": "1.0",
@@ -2976,18 +2988,17 @@
   },
   {
    "id": "ntc-0005",
-   "seq": 39,
+   "seq": 36,
    "kind": "alert.updated",
    "created_at": "2026-11-19T23:30:00-08:00",
+   "release_at": "2026-11-20T07:00:00-07:00",
    "object": {"type": "alert", "id": "al-0003"},
    "message_id": "al-0003-m2",
    "place_ids": ["pl-marrowby"],
    "severity": "severe",
    "title": "Updated: Air Quality Alert for Marrowby (saved as Mom's house)",
    "body": "Regional Air Board updated the Air Quality Alert (severity: severe) for zone z-saltgrass-coast. In effect 2026-11-19T16:00:00-08:00 to 2026-11-22T00:00:00-08:00. Open Rainshadow for the full text.",
-   "release_at": "2026-11-20T07:00:00-07:00",
    "cause": {"event_id": "seed-ev-030"},
-   "released_at": "2026-11-20T07:00:00-07:00",
    "wire": {
     "specversion": "1.0",
     "id": "ntc-0005",
@@ -3012,16 +3023,16 @@
   },
   {
    "id": "ntc-0006",
-   "seq": 54,
+   "seq": 50,
    "kind": "alert.updated",
    "created_at": "2026-11-20T08:00:00-07:00",
+   "release_at": "2026-11-20T08:00:00-07:00",
    "object": {"type": "alert", "id": "al-0002"},
    "message_id": "al-0002-m2",
    "place_ids": ["pl-cinderhorn-pass"],
    "severity": "moderate",
    "title": "Updated: Wind Advisory for Cinderhorn Pass (saved as Ski cabin road)",
    "body": "Public Forecast Office updated the Wind Advisory (severity: moderate) for zone z-tallow-high. In effect 2026-11-20T12:00:00-07:00 to 2026-11-21T06:00:00-07:00. Open Rainshadow for the full text.",
-   "released_at": "2026-11-20T08:00:00-07:00",
    "cause": {"event_id": "seed-ev-043"},
    "wire": {
     "specversion": "1.0",
@@ -3047,16 +3058,16 @@
   },
   {
    "id": "ntc-0007",
-   "seq": 56,
+   "seq": 52,
    "kind": "alert.issued",
    "created_at": "2026-11-20T07:30:00-08:00",
+   "release_at": "2026-11-20T07:30:00-08:00",
    "object": {"type": "alert", "id": "al-0004"},
    "message_id": "al-0004-m1",
    "place_ids": ["pl-marrowby"],
    "severity": "severe",
    "title": "Coastal Flood Advisory for Marrowby (saved as Mom's house)",
    "body": "Public Forecast Office issued a Coastal Flood Advisory (severity: severe) for zone z-marrow. In effect 2026-11-20T16:00:00-08:00 to 2026-11-21T04:00:00-08:00. Open Rainshadow for the full text.",
-   "released_at": "2026-11-20T07:30:00-08:00",
    "cause": {"event_id": "seed-ev-044"},
    "wire": {
     "specversion": "1.0",
@@ -3082,16 +3093,16 @@
   },
   {
    "id": "ntc-0008",
-   "seq": 61,
+   "seq": 57,
    "kind": "alert.cancelled",
    "created_at": "2026-11-20T09:00:00-08:00",
+   "release_at": "2026-11-20T09:00:00-08:00",
    "object": {"type": "alert", "id": "al-0003"},
    "message_id": "al-0003-m3",
    "place_ids": ["pl-marrowby"],
    "severity": "severe",
    "title": "Cancelled: Air Quality Alert for Marrowby (saved as Mom's house)",
    "body": "Regional Air Board cancelled the Air Quality Alert for zone z-saltgrass-coast. Onshore winds cleared the smoke earlier than forecast.",
-   "released_at": "2026-11-20T09:00:00-08:00",
    "cause": {"event_id": "seed-ev-048"},
    "wire": {
     "specversion": "1.0",
@@ -3139,7 +3150,7 @@
    "action": "notice.created",
    "object_id": "ntc-0001",
    "event_id": "seed-ev-007",
-   "details": {"kind": "alert.issued", "state": "released"}
+   "details": {"kind": "alert.issued", "release_at": "2026-11-18T12:00:00-07:00"}
   },
   {
    "seq": 9,
@@ -3157,7 +3168,7 @@
    "action": "notice.created",
    "object_id": "ntc-0002",
    "event_id": "seed-ev-008",
-   "details": {"kind": "alert.issued", "state": "released"}
+   "details": {"kind": "alert.issued", "release_at": "2026-11-19T09:00:00-07:00"}
   },
   {"seq": 11, "at": "2026-11-19T10:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-wren-2", "event_id": "seed-ev-009"},
   {"seq": 12, "at": "2026-11-19T10:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-tallow-2", "event_id": "seed-ev-010"},
@@ -3165,9 +3176,8 @@
   {"seq": 14, "at": "2026-11-19T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-brindle-2", "event_id": "seed-ev-012"},
   {"seq": 15, "at": "2026-11-19T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-marrow-2", "event_id": "seed-ev-013"},
   {"seq": 16, "at": "2026-11-19T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-tamsin-2", "event_id": "seed-ev-014"},
-  {"seq": 17, "at": "2026-11-19T12:00:00-07:00", "actor": "event", "action": "clock.advanced", "object_id": "clock", "event_id": "seed-ev-015-clock"},
   {
-   "seq": 18,
+   "seq": 17,
    "at": "2026-11-19T12:00:00-07:00",
    "actor": "agent",
    "action": "alerts.acknowledge",
@@ -3175,9 +3185,8 @@
    "request_id": "seed-req-015",
    "details": {"message_id": "al-0002-m1"}
   },
-  {"seq": 19, "at": "2026-11-19T13:00:00-07:00", "actor": "event", "action": "clock.advanced", "object_id": "clock", "event_id": "seed-ev-016-clock"},
   {
-   "seq": 20,
+   "seq": 18,
    "at": "2026-11-19T13:00:00-07:00",
    "actor": "agent",
    "action": "watches.create",
@@ -3185,11 +3194,11 @@
    "request_id": "seed-req-016",
    "details": {"status": "no_data"}
   },
-  {"seq": 21, "at": "2026-11-19T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-wren-1", "event_id": "seed-ev-017"},
-  {"seq": 22, "at": "2026-11-19T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tallow-1", "event_id": "seed-ev-018"},
-  {"seq": 23, "at": "2026-11-19T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-cinder-1", "event_id": "seed-ev-019"},
+  {"seq": 19, "at": "2026-11-19T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-wren-1", "event_id": "seed-ev-017"},
+  {"seq": 20, "at": "2026-11-19T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tallow-1", "event_id": "seed-ev-018"},
+  {"seq": 21, "at": "2026-11-19T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-cinder-1", "event_id": "seed-ev-019"},
   {
-   "seq": 24,
+   "seq": 22,
    "at": "2026-11-19T15:00:00-07:00",
    "actor": "event",
    "action": "watch.status_changed",
@@ -3198,19 +3207,19 @@
    "details": {"from": "no_data", "to": "triggered"}
   },
   {
-   "seq": 25,
+   "seq": 23,
    "at": "2026-11-19T15:00:00-07:00",
    "actor": "event",
    "action": "notice.created",
    "object_id": "ntc-0003",
    "event_id": "seed-ev-019",
-   "details": {"kind": "watch.triggered", "state": "released"}
+   "details": {"kind": "watch.triggered", "release_at": "2026-11-19T15:00:00-07:00"}
   },
-  {"seq": 26, "at": "2026-11-19T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-brindle-1", "event_id": "seed-ev-020"},
-  {"seq": 27, "at": "2026-11-19T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-marrow-1", "event_id": "seed-ev-021"},
-  {"seq": 28, "at": "2026-11-19T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tamsin-1", "event_id": "seed-ev-022"},
+  {"seq": 24, "at": "2026-11-19T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-brindle-1", "event_id": "seed-ev-020"},
+  {"seq": 25, "at": "2026-11-19T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-marrow-1", "event_id": "seed-ev-021"},
+  {"seq": 26, "at": "2026-11-19T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tamsin-1", "event_id": "seed-ev-022"},
   {
-   "seq": 29,
+   "seq": 27,
    "at": "2026-11-19T16:00:00-08:00",
    "actor": "event",
    "action": "alert.issued",
@@ -3219,23 +3228,22 @@
    "details": {"message_id": "al-0003-m1"}
   },
   {
-   "seq": 30,
+   "seq": 28,
    "at": "2026-11-19T16:00:00-08:00",
    "actor": "event",
    "action": "notice.created",
    "object_id": "ntc-0004",
    "event_id": "seed-ev-023",
-   "details": {"kind": "alert.issued", "state": "released"}
+   "details": {"kind": "alert.issued", "release_at": "2026-11-19T16:00:00-08:00"}
   },
-  {"seq": 31, "at": "2026-11-19T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-wren-1", "event_id": "seed-ev-024"},
-  {"seq": 32, "at": "2026-11-19T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tallow-1", "event_id": "seed-ev-025"},
-  {"seq": 33, "at": "2026-11-19T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-cinder-1", "event_id": "seed-ev-026"},
-  {"seq": 34, "at": "2026-11-19T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-brindle-1", "event_id": "seed-ev-027"},
-  {"seq": 35, "at": "2026-11-19T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-marrow-1", "event_id": "seed-ev-028"},
-  {"seq": 36, "at": "2026-11-19T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tamsin-1", "event_id": "seed-ev-029"},
-  {"seq": 37, "at": "2026-11-19T20:00:00-07:00", "actor": "timer", "action": "watch.ended", "object_id": "w-0001", "event_id": "seed-ev-030"},
+  {"seq": 29, "at": "2026-11-19T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-wren-1", "event_id": "seed-ev-024"},
+  {"seq": 30, "at": "2026-11-19T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tallow-1", "event_id": "seed-ev-025"},
+  {"seq": 31, "at": "2026-11-19T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-cinder-1", "event_id": "seed-ev-026"},
+  {"seq": 32, "at": "2026-11-19T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-brindle-1", "event_id": "seed-ev-027"},
+  {"seq": 33, "at": "2026-11-19T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-marrow-1", "event_id": "seed-ev-028"},
+  {"seq": 34, "at": "2026-11-19T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tamsin-1", "event_id": "seed-ev-029"},
   {
-   "seq": 38,
+   "seq": 35,
    "at": "2026-11-19T23:30:00-08:00",
    "actor": "event",
    "action": "alert.updated",
@@ -3244,29 +3252,28 @@
    "details": {"message_id": "al-0003-m2"}
   },
   {
-   "seq": 39,
+   "seq": 36,
    "at": "2026-11-19T23:30:00-08:00",
    "actor": "event",
    "action": "notice.created",
    "object_id": "ntc-0005",
    "event_id": "seed-ev-030",
-   "details": {"kind": "alert.updated", "state": "held"}
+   "details": {"kind": "alert.updated", "release_at": "2026-11-20T07:00:00-07:00"}
   },
-  {"seq": 40, "at": "2026-11-20T03:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-wren-2", "event_id": "seed-ev-031"},
-  {"seq": 41, "at": "2026-11-20T03:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tallow-2", "event_id": "seed-ev-032"},
-  {"seq": 42, "at": "2026-11-20T03:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-cinder-2", "event_id": "seed-ev-033"},
-  {"seq": 43, "at": "2026-11-20T03:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-brindle-2", "event_id": "seed-ev-034"},
-  {"seq": 44, "at": "2026-11-20T03:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-marrow-2", "event_id": "seed-ev-035"},
-  {"seq": 45, "at": "2026-11-20T03:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tamsin-2", "event_id": "seed-ev-036"},
-  {"seq": 46, "at": "2026-11-20T06:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-wren-2", "event_id": "seed-ev-037"},
-  {"seq": 47, "at": "2026-11-20T06:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tallow-2", "event_id": "seed-ev-038"},
-  {"seq": 48, "at": "2026-11-20T06:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-cinder-2", "event_id": "seed-ev-039"},
-  {"seq": 49, "at": "2026-11-20T07:00:00-07:00", "actor": "timer", "action": "notice.released", "object_id": "ntc-0005", "event_id": "seed-ev-040"},
-  {"seq": 50, "at": "2026-11-20T06:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-brindle-2", "event_id": "seed-ev-040"},
-  {"seq": 51, "at": "2026-11-20T06:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-marrow-2", "event_id": "seed-ev-041"},
-  {"seq": 52, "at": "2026-11-20T06:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tamsin-2", "event_id": "seed-ev-042"},
+  {"seq": 37, "at": "2026-11-20T03:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-wren-2", "event_id": "seed-ev-031"},
+  {"seq": 38, "at": "2026-11-20T03:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tallow-2", "event_id": "seed-ev-032"},
+  {"seq": 39, "at": "2026-11-20T03:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-cinder-2", "event_id": "seed-ev-033"},
+  {"seq": 40, "at": "2026-11-20T03:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-brindle-2", "event_id": "seed-ev-034"},
+  {"seq": 41, "at": "2026-11-20T03:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-marrow-2", "event_id": "seed-ev-035"},
+  {"seq": 42, "at": "2026-11-20T03:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tamsin-2", "event_id": "seed-ev-036"},
+  {"seq": 43, "at": "2026-11-20T06:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-wren-2", "event_id": "seed-ev-037"},
+  {"seq": 44, "at": "2026-11-20T06:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tallow-2", "event_id": "seed-ev-038"},
+  {"seq": 45, "at": "2026-11-20T06:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-cinder-2", "event_id": "seed-ev-039"},
+  {"seq": 46, "at": "2026-11-20T06:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-brindle-2", "event_id": "seed-ev-040"},
+  {"seq": 47, "at": "2026-11-20T06:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-marrow-2", "event_id": "seed-ev-041"},
+  {"seq": 48, "at": "2026-11-20T06:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tamsin-2", "event_id": "seed-ev-042"},
   {
-   "seq": 53,
+   "seq": 49,
    "at": "2026-11-20T08:00:00-07:00",
    "actor": "event",
    "action": "alert.updated",
@@ -3275,16 +3282,16 @@
    "details": {"message_id": "al-0002-m2"}
   },
   {
-   "seq": 54,
+   "seq": 50,
    "at": "2026-11-20T08:00:00-07:00",
    "actor": "event",
    "action": "notice.created",
    "object_id": "ntc-0006",
    "event_id": "seed-ev-043",
-   "details": {"kind": "alert.updated", "state": "released"}
+   "details": {"kind": "alert.updated", "release_at": "2026-11-20T08:00:00-07:00"}
   },
   {
-   "seq": 55,
+   "seq": 51,
    "at": "2026-11-20T07:30:00-08:00",
    "actor": "event",
    "action": "alert.issued",
@@ -3293,19 +3300,19 @@
    "details": {"message_id": "al-0004-m1"}
   },
   {
-   "seq": 56,
+   "seq": 52,
    "at": "2026-11-20T07:30:00-08:00",
    "actor": "event",
    "action": "notice.created",
    "object_id": "ntc-0007",
    "event_id": "seed-ev-044",
-   "details": {"kind": "alert.issued", "state": "released"}
+   "details": {"kind": "alert.issued", "release_at": "2026-11-20T07:30:00-08:00"}
   },
-  {"seq": 57, "at": "2026-11-20T10:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-wren-3", "event_id": "seed-ev-045"},
-  {"seq": 58, "at": "2026-11-20T10:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-tallow-3", "event_id": "seed-ev-046"},
-  {"seq": 59, "at": "2026-11-20T10:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-cinder-3", "event_id": "seed-ev-047"},
+  {"seq": 53, "at": "2026-11-20T10:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-wren-3", "event_id": "seed-ev-045"},
+  {"seq": 54, "at": "2026-11-20T10:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-tallow-3", "event_id": "seed-ev-046"},
+  {"seq": 55, "at": "2026-11-20T10:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-cinder-3", "event_id": "seed-ev-047"},
   {
-   "seq": 60,
+   "seq": 56,
    "at": "2026-11-20T09:00:00-08:00",
    "actor": "event",
    "action": "alert.cancelled",
@@ -3314,19 +3321,19 @@
    "details": {"message_id": "al-0003-m3"}
   },
   {
-   "seq": 61,
+   "seq": 57,
    "at": "2026-11-20T09:00:00-08:00",
    "actor": "event",
    "action": "notice.created",
    "object_id": "ntc-0008",
    "event_id": "seed-ev-048",
-   "details": {"kind": "alert.cancelled", "state": "released"}
+   "details": {"kind": "alert.cancelled", "release_at": "2026-11-20T09:00:00-08:00"}
   },
-  {"seq": 62, "at": "2026-11-20T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-brindle-3", "event_id": "seed-ev-049"},
-  {"seq": 63, "at": "2026-11-20T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-marrow-3", "event_id": "seed-ev-050"},
-  {"seq": 64, "at": "2026-11-20T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-tamsin-3", "event_id": "seed-ev-051"},
+  {"seq": 58, "at": "2026-11-20T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-brindle-3", "event_id": "seed-ev-049"},
+  {"seq": 59, "at": "2026-11-20T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-marrow-3", "event_id": "seed-ev-050"},
+  {"seq": 60, "at": "2026-11-20T10:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "aq-tamsin-3", "event_id": "seed-ev-051"},
   {
-   "seq": 65,
+   "seq": 61,
    "at": "2026-11-20T11:00:00-08:00",
    "actor": "event",
    "action": "alert.issued",
@@ -3335,7 +3342,7 @@
    "details": {"message_id": "al-0005-m1"}
   },
   {
-   "seq": 66,
+   "seq": 62,
    "at": "2026-11-20T13:00:00-07:00",
    "actor": "event",
    "action": "alert.issued",
@@ -3343,25 +3350,23 @@
    "event_id": "seed-ev-053",
    "details": {"message_id": "al-0006-m1"}
   },
-  {"seq": 67, "at": "2026-11-20T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-wren-3", "event_id": "seed-ev-054"},
-  {"seq": 68, "at": "2026-11-20T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tallow-3", "event_id": "seed-ev-055"},
-  {"seq": 69, "at": "2026-11-20T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-cinder-3", "event_id": "seed-ev-056"},
-  {"seq": 70, "at": "2026-11-20T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-brindle-3", "event_id": "seed-ev-057"},
-  {"seq": 71, "at": "2026-11-20T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-marrow-3", "event_id": "seed-ev-058"},
-  {"seq": 72, "at": "2026-11-20T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tamsin-3", "event_id": "seed-ev-059"},
-  {"seq": 73, "at": "2026-11-20T16:00:00-07:00", "actor": "event", "action": "clock.advanced", "object_id": "clock", "event_id": "seed-ev-060-clock"},
+  {"seq": 63, "at": "2026-11-20T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-wren-3", "event_id": "seed-ev-054"},
+  {"seq": 64, "at": "2026-11-20T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tallow-3", "event_id": "seed-ev-055"},
+  {"seq": 65, "at": "2026-11-20T15:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-cinder-3", "event_id": "seed-ev-056"},
+  {"seq": 66, "at": "2026-11-20T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-brindle-3", "event_id": "seed-ev-057"},
+  {"seq": 67, "at": "2026-11-20T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-marrow-3", "event_id": "seed-ev-058"},
+  {"seq": 68, "at": "2026-11-20T15:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-pfo-tamsin-3", "event_id": "seed-ev-059"},
   {
-   "seq": 74,
-   "at": "2026-11-20T16:00:00-07:00",
+   "seq": 69,
+   "at": "2026-11-20T15:00:00-08:00",
    "actor": "agent",
    "action": "watches.create",
    "object_id": "w-0002",
    "request_id": "seed-req-060",
    "details": {"status": "clear"}
   },
-  {"seq": 75, "at": "2026-11-20T16:30:00-07:00", "actor": "event", "action": "clock.advanced", "object_id": "clock", "event_id": "seed-ev-061-clock"},
   {
-   "seq": 76,
+   "seq": 70,
    "at": "2026-11-20T16:30:00-07:00",
    "actor": "agent",
    "action": "watches.create",
@@ -3369,24 +3374,23 @@
    "request_id": "seed-req-061",
    "details": {"status": "clear"}
   },
-  {"seq": 77, "at": "2026-11-20T17:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-wren-1", "event_id": "seed-ev-062"},
-  {"seq": 78, "at": "2026-11-20T17:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-tallow-1", "event_id": "seed-ev-063"},
-  {"seq": 79, "at": "2026-11-20T17:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-cinder-1", "event_id": "seed-ev-064"},
-  {"seq": 80, "at": "2026-11-20T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-wren-3", "event_id": "seed-ev-065"},
-  {"seq": 81, "at": "2026-11-20T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tallow-3", "event_id": "seed-ev-066"},
-  {"seq": 82, "at": "2026-11-20T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-cinder-3", "event_id": "seed-ev-067"},
-  {"seq": 83, "at": "2026-11-20T18:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-wren-2", "event_id": "seed-ev-068"},
-  {"seq": 84, "at": "2026-11-20T18:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-tallow-2", "event_id": "seed-ev-069"},
-  {"seq": 85, "at": "2026-11-20T18:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-cinder-2", "event_id": "seed-ev-070"},
-  {"seq": 86, "at": "2026-11-20T17:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-brindle-1", "event_id": "seed-ev-071"},
-  {"seq": 87, "at": "2026-11-20T17:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-marrow-1", "event_id": "seed-ev-072"},
-  {"seq": 88, "at": "2026-11-20T17:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-tamsin-1", "event_id": "seed-ev-073"},
-  {"seq": 89, "at": "2026-11-20T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-brindle-3", "event_id": "seed-ev-074"},
-  {"seq": 90, "at": "2026-11-20T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-marrow-3", "event_id": "seed-ev-075"},
-  {"seq": 91, "at": "2026-11-20T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tamsin-3", "event_id": "seed-ev-076"},
-  {"seq": 92, "at": "2026-11-20T18:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-brindle-2", "event_id": "seed-ev-077"},
-  {"seq": 93, "at": "2026-11-20T18:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-marrow-2", "event_id": "seed-ev-078"},
-  {"seq": 94, "at": "2026-11-20T18:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-tamsin-2", "event_id": "seed-ev-079"},
-  {"seq": 95, "at": "2026-11-20T20:00:00-07:00", "actor": "event", "action": "clock.advanced", "object_id": "clock", "event_id": "seed-ev-clock"}
+  {"seq": 71, "at": "2026-11-20T17:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-wren-1", "event_id": "seed-ev-062"},
+  {"seq": 72, "at": "2026-11-20T17:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-tallow-1", "event_id": "seed-ev-063"},
+  {"seq": 73, "at": "2026-11-20T17:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-cinder-1", "event_id": "seed-ev-064"},
+  {"seq": 74, "at": "2026-11-20T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-wren-3", "event_id": "seed-ev-065"},
+  {"seq": 75, "at": "2026-11-20T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tallow-3", "event_id": "seed-ev-066"},
+  {"seq": 76, "at": "2026-11-20T18:00:00-07:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-cinder-3", "event_id": "seed-ev-067"},
+  {"seq": 77, "at": "2026-11-20T18:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-wren-2", "event_id": "seed-ev-068"},
+  {"seq": 78, "at": "2026-11-20T18:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-tallow-2", "event_id": "seed-ev-069"},
+  {"seq": 79, "at": "2026-11-20T18:50:00-07:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-cinder-2", "event_id": "seed-ev-070"},
+  {"seq": 80, "at": "2026-11-20T17:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-brindle-1", "event_id": "seed-ev-071"},
+  {"seq": 81, "at": "2026-11-20T17:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-marrow-1", "event_id": "seed-ev-072"},
+  {"seq": 82, "at": "2026-11-20T17:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-tamsin-1", "event_id": "seed-ev-073"},
+  {"seq": 83, "at": "2026-11-20T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-brindle-3", "event_id": "seed-ev-074"},
+  {"seq": 84, "at": "2026-11-20T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-marrow-3", "event_id": "seed-ev-075"},
+  {"seq": 85, "at": "2026-11-20T18:00:00-08:00", "actor": "event", "action": "forecast.issued", "object_id": "iss-sky-tamsin-3", "event_id": "seed-ev-076"},
+  {"seq": 86, "at": "2026-11-20T18:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-brindle-2", "event_id": "seed-ev-077"},
+  {"seq": 87, "at": "2026-11-20T18:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-marrow-2", "event_id": "seed-ev-078"},
+  {"seq": 88, "at": "2026-11-20T18:50:00-08:00", "actor": "event", "action": "observation.recorded", "object_id": "ob-tamsin-2", "event_id": "seed-ev-079"}
  ]
 }

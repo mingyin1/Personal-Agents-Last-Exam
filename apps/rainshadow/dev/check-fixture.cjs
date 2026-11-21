@@ -60,11 +60,15 @@ function check(data = require('../fixtures/minimal.json'), clock = require('../f
   expect(['alert', 'update', 'cancel'].every(t => types.has(t)), 'alert threads cover every message type');
 
   expect(data.activity.every((a, n) => a.seq === n + 1), 'activity sequence is 1..n');
-  expect(data.activity.every((a, n) => n === 0 || a.actor === 'timer' || ms(a.at) >= Math.max(...data.activity.slice(0, n).filter(b => b.actor !== 'timer').map(b => ms(b.at)), 0)), 'activity time does not go back');
+  expect(data.activity.every((a, n) => n === 0 || ms(a.at) >= ms(data.activity[n - 1].at)), 'activity time does not go back');
+  expect(data.activity.every(a => ['agent', 'event'].includes(a.actor)), 'activity rows come from Agent writes and events only');
   for (const n of data.notices) {
-    expect(n.released_at !== undefined && n.wire !== undefined && n.wire.id === n.id && n.wire.time === n.released_at && n.wire.data.content.title === n.title && n.wire.data.content.body.text === n.body, n.id + ': released, with a matching wire message');
+    expect(ms(n.release_at) >= ms(n.created_at) && ms(n.release_at) <= ms(clock), n.id + ': released by the fixture clock');
+    expect(n.wire !== undefined && n.wire.id === n.id && n.wire.time === n.release_at && n.wire.data.content.title === n.title && n.wire.data.content.body.text === n.body, n.id + ': a wire message that matches the notice and is dated at its release time');
     expect(data.activity.some(a => a.action === 'notice.created' && a.object_id === n.id && a.seq === n.seq), n.id + ': has its activity row');
   }
+  expect(data.notices.some(n => ms(n.release_at) > ms(n.created_at)), 'one notice was written in quiet hours and released later');
+  for (const w of data.watches) expect((w.aq_source_id !== undefined) === w.conditions.some(c => c.variable === 'aqi'), w.id + ': an air-quality source exactly when it has an aqi condition');
   return problems;
 }
 

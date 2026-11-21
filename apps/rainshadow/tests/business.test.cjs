@@ -1,11 +1,14 @@
 'use strict';
-// App-only business tests T01-T18 of the approved proposal. They call the real business
-// functions through tests/harness.cjs with the package fixture (clock: Friday
-// 2026-11-20 20:00 -07:00). Core behavior (T17, reset in T18) needs the public runtime and
-// lives in tests/mcp.integration.cjs; T17 here runs that script when the runtime is present.
+// App-only business tests T01-T18 of the proposal. They call the real business functions
+// through tests/harness.cjs with the package fixture (clock: Friday 2026-11-20 20:00 -07:00)
+// and need nothing outside this package. Core behavior (T17, the real env.advance_time of
+// T16, reset in T18) needs the public runtime and lives in tests/mcp.integration.cjs; the
+// Mail flow lives in tests/mail.integration.cjs. Both run from here only when
+// PALE_RUNTIME_ROOT names the runtime directory of a public checkout.
 const test = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), { spawnSync } = require('node:child_process');
-const { fixture, plugin, publicRuntime } = require('./harness.cjs');
+const { fixture, plugin } = require('./harness.cjs');
+const sender = require('../infra/sender.cjs');
 
 const FRI = '2026-11-20', SAT = '2026-11-21', SUN = '2026-11-22';
 const at = (date, hhmm, offset = '-07:00') => date + 'T' + hhmm + (hhmm.length === 5 ? ':00' : '') + offset;
@@ -104,14 +107,21 @@ test('T03 [W1] preferences: units, quiet hours, time zone and default source', (
   rejects(app, () => app.call('preferences.update', { patch: { quiet_hours: { start: '07:00' } } }), 'invalid_window');
   rejects(app, () => app.call('preferences.update', { patch: { default_source_id: 'src-none' } }), 'not_found');
   rejects(app, () => app.call('preferences.update', { patch: { default_source_id: 'src-aqb' } }), 'not_found');
+  rejects(app, () => app.call('preferences.update', { patch: { default_air_source_id: 'src-none' } }), 'not_found');
+  rejects(app, () => app.call('preferences.update', { patch: { default_air_source_id: 'src-pfo' } }), 'not_found');
   rejects(app, () => app.call('preferences.update', { patch: {} }), 'invalid_arguments');
+  assert.equal(app.call('preferences.get').preferences.default_air_source_id, 'src-aqb');
 
   assert.equal(app.call('preferences.get').preferences.in_quiet_hours, false);
   const next = app.call('preferences.update', { patch: { timezone: 'America/Chicago', quiet_hours: { start: '20:30' }, default_source_id: 'src-skyline', email_notices: false } }).preferences;
   assert.deepEqual(next.quiet_hours, { enabled: true, start: '20:30', end: '07:00' });
   assert.equal(next.in_quiet_hours, true, '20:00 in Denver is 21:00 in Chicago');
   assert.equal(app.call('forecast.hourly', window).source.id, 'src-skyline');
-  assert.deepEqual(app.call('sources.list').sources.map(s => [s.id, s.kind, s.is_default, s.issuance_count]), [['src-pfo', 'weather', false, 18], ['src-skyline', 'weather', true, 18], ['src-aqb', 'air_quality', false, 18]]);
+  const defaults = () => app.call('sources.list').sources.map(s => [s.id, s.kind, s.is_default, s.issuance_count]);
+  assert.deepEqual(defaults(), [['src-pfo', 'weather', false, 18], ['src-skyline', 'weather', true, 18], ['src-aqb', 'air_quality', true, 18]], 'one default per kind');
+  assert.equal(app.call('preferences.update', { patch: { default_air_source_id: null } }).preferences.default_air_source_id, null);
+  assert.deepEqual(defaults().map(d => d[2]), [false, true, false]);
+  assert.equal(app.call('preferences.update', { patch: { default_air_source_id: 'src-aqb' } }).preferences.default_air_source_id, 'src-aqb');
 });
 
 test('T04 [W2] the latest issuance per source and place; explicit issuance_id; is_latest', () => {
@@ -147,6 +157,13 @@ test('T04 [W2] the latest issuance per source and place; explicit issuance_id; i
   assert.equal(all.next_cursor, '4');
   assert.equal(app.call('forecast.issuances', { id: WREN, limit: 4, cursor: '8' }).next_cursor, null);
   assert.deepEqual(app.data, before, 'reads leave state identical');
+
+  // The latest issuance is the one with the newest issued_at, whatever order they arrive in.
+  app.event(issued('iss-pfo-wren-late', at(FRI, '20:50'), [[12, { pop: 95 }]], { issued_at: at(FRI, '19:00') }));
+  assert.deepEqual(app.call('forecast.hourly', window).issuance, { id: 'iss-pfo-wren-4', issued_at: at(FRI, '20:30'), is_latest: true }, 'a late arrival with an older issue time does not take over');
+  assert.deepEqual(app.call('forecast.issuances', { id: WREN, source_id: 'src-pfo' }).issuances.slice(0, 3).map(i => [i.id, i.is_latest]), [['iss-pfo-wren-4', true], ['iss-pfo-wren-late', false], ['iss-pfo-wren-3', false]]);
+  assert.deepEqual(app.call('forecast.hourly', { ...window, issuance_id: 'iss-pfo-wren-late' }).issuance, { id: 'iss-pfo-wren-late', issued_at: at(FRI, '19:00'), is_latest: false });
+  assert.equal(app.call('watches.get', { id: 'w-0002' }).watch.evaluation.issuance.id, 'iss-pfo-wren-4', 'the watch is evaluated against the latest issuance, not the last arrival');
 });
 
 test('T05 [W2] coverage and gaps; no issuance; pagination; no fallback to another source', () => {
@@ -347,8 +364,11 @@ test('T12 [W4] create and evaluate to clear, triggered and no_data; every condit
 
   const coast = { id: MARROW, start: at(SAT, '08:00', '-08:00'), end: at(SAT, '18:00', '-08:00') };
   const air = app.call('watches.create', { ...coast, conditions: [{ variable: 'aqi', value: 50 }] }).watch;
-  assert.deepEqual([air.status, air.aq_source_id, air.evaluation.aq_issuance.id], ['triggered', 'src-aqb', 'aq-marrow-3']);
+  assert.deepEqual([air.status, air.aq_source_id, air.evaluation.aq_issuance.id], ['triggered', 'src-aqb', 'aq-marrow-3'], 'the air-quality source defaults to the account\'s and is stored on the watch');
   assert.deepEqual(air.evaluation.conditions[0].matches, [{ date: SAT, value: 57, unit: 'index' }]);
+  assert.deepEqual([air.evaluation.issuance, air.evaluation.dates], [null, { considered: 1, missing: [] }], 'the record names the issuance used and the dates covered');
+  const far = app.call('watches.create', { id: MARROW, start: at(SUN, '08:00', '-08:00'), end: at('2026-11-24', '08:00', '-08:00'), conditions: [{ variable: 'aqi', value: 50 }] }).watch;
+  assert.deepEqual([far.status, far.evaluation.dates], ['clear', { considered: 1, missing: ['2026-11-23', '2026-11-24'] }], 'dates the air-quality issuance does not cover are listed');
   const tonight = { id: MARROW, start: at(FRI, '20:00', '-08:00'), end: at(SAT, '02:00', '-08:00') };
   const flood = app.call('watches.create', { ...tonight, conditions: [{ variable: 'alert', category: 'flood', min_severity: 'severe' }, { variable: 'alert', category: 'wind' }, { variable: 'alert', min_severity: 'extreme' }] }).watch;
   assert.equal(flood.status, 'triggered');
@@ -367,9 +387,13 @@ test('T12 [W4] create and evaluate to clear, triggered and no_data; every condit
   rejects(app, () => app.call('watches.create', { ...HIKE, id: 'pl-tallowmere', conditions: [{ variable: 'pop', value: 40 }] }), 'not_found');
   rejects(app, () => make([{ variable: 'pop', value: 40 }], { source_id: 'src-aqb' }), 'not_found');
   rejects(app, () => make([{ variable: 'aqi', value: 100 }], { aq_source_id: 'src-pfo' }), 'not_found');
+  rejects(app, () => make([{ variable: 'pop', value: 40 }], { aq_source_id: 'src-aqb' }), 'invalid_arguments');
+  app.call('preferences.update', { patch: { default_air_source_id: null } });
+  rejects(app, () => make([{ variable: 'aqi', value: 100 }]), 'not_found');
+  assert.equal(make([{ variable: 'aqi', value: 100 }], { aq_source_id: 'src-aqb' }).aq_source_id, 'src-aqb', 'a named air-quality source needs no default');
 });
 
-test('T13 [W4] re-evaluation only on new information; one notice per change; edits write none', () => {
+test('T13 [W4] re-evaluation only on new information (weather and air-quality issuances); one notice per change; edits write none', () => {
   const app = fixture(), count = notices(app).length, watch = () => app.call('watches.get', { id: 'w-0002' }).watch;
   const created = watch().evaluation;
   app.advance(at(FRI, '20:15'));
@@ -406,14 +430,37 @@ test('T13 [W4] re-evaluation only on new information; one notice per change; edi
   assert.equal(watch().status, 'no_data', 'the newest issuance covers none of the window');
   assert.equal(notices(app).length, count + 2, 'only changes into or out of triggered-to-clear write a notice');
 
-  const mark = app.data.activity.length;
+  const stored = app.data;
   app.advance(at(SAT, '13:00'));
-  const ended = watch();
-  assert.deepEqual([ended.status, ended.ended_at], ['ended', at(SAT, '13:00')]);
-  assert.deepEqual(actions(app, mark), ['timer:watch.ended:w-0002', 'event:clock.advanced:clock']);
+  assert.equal(watch().status, 'ended', 'time alone only ends a watch');
+  assert.deepEqual(app.data, stored, 'and it does so without changing a record');
   app.event(issued('iss-pfo-wren-8', at(SAT, '13:05'), [[14, { pop: 90 }]]));
   assert.equal(watch().evaluation.issuance.id, 'iss-pfo-wren-7', 'an ended watch is not evaluated again');
   assert.equal(notices(app).length, count + 2);
+
+  // An air-quality issuance is new information for a watch with an aqi condition.
+  const coast = fixture(), walk = () => coast.call('watches.get', { id: 'w-0003' }).watch;
+  const airIssued = (id, when, values, issuedAt = when) => ({ event_id: 'ev-' + id, at: when, operation: 'rainshadow.forecast.issued', payload: { issuance_id: id, source_id: 'src-aqb', place_id: MARROW, issued_at: issuedAt, daily: values.map(([date, aqi]) => ({ date, aqi, pollutant: 'pm25' })) } });
+  assert.deepEqual([walk().status, walk().aq_source_id, walk().evaluation.aq_issuance.id], ['clear', 'src-aqb', 'aq-marrow-3']);
+  const quiet = walk().evaluation;
+  coast.event(issued('iss-pfo-wren-5', at(FRI, '20:10'), [[12, { pop: 90 }]]));
+  assert.deepEqual(walk().evaluation, quiet, 'an issuance for another place is not this watch\'s information');
+  const base = notices(coast).length;
+  coast.event(airIssued('aq-marrow-4', at(FRI, '20:20'), [[SAT, 110], [SUN, 60]]));
+  const smoky = walk();
+  assert.deepEqual([smoky.status, smoky.evaluation.aq_issuance, smoky.evaluation.cause], ['triggered', { id: 'aq-marrow-4', issued_at: at(FRI, '20:20') }, { kind: 'forecast.issued', event_id: 'ev-aq-marrow-4' }]);
+  assert.deepEqual(smoky.evaluation.conditions[0], { index: 0, evaluable: true, met: true, matches: [{ date: SAT, value: 110, unit: 'index' }] });
+  assert.deepEqual(smoky.evaluation.dates, { considered: 1, missing: [] });
+  let air = notices(coast);
+  assert.deepEqual([air.length, air[0].kind, air[0].object], [base + 1, 'watch.triggered', { type: 'watch', id: 'w-0003' }]);
+  assert.match(air[0].body, /^Regional Air Board forecast issued 2026-11-20T20:20:00-07:00: aqi 110 on 2026-11-21 meets aqi >= 101\./);
+  coast.event(airIssued('aq-marrow-5', at(FRI, '20:40'), [[SAT, 125]]));
+  assert.deepEqual([walk().status, walk().evaluation.aq_issuance.id, notices(coast).length], ['triggered', 'aq-marrow-5', base + 1], 'still triggered: the record moves on, no second notice');
+  coast.event(airIssued('aq-marrow-6', at(FRI, '21:00'), [[SAT, 80]]));
+  air = notices(coast);
+  assert.deepEqual([walk().status, air.length, air[0].kind], ['clear', base + 2, 'watch.cleared']);
+  coast.event(airIssued('aq-marrow-old', at(FRI, '21:10'), [[SAT, 300]], at(FRI, '12:00')));
+  assert.deepEqual([walk().status, walk().evaluation.aq_issuance.id, notices(coast).length], ['clear', 'aq-marrow-6', base + 2], 'a late arrival with an older issue time changes nothing');
 });
 
 test('T13b [W4] alert conditions follow alert messages; the last started hour freezes hourly results', () => {
@@ -455,6 +502,9 @@ test('T14 [W4] update and cancel rules and limits', () => {
   assert.equal(app.call('watches.update', { id: 'w-0002', patch: { linked_object: null } }).watch.linked_object, null);
   const air = app.call('watches.update', { id: 'w-0003', patch: { conditions: [{ variable: 'alert' }] } }).watch;
   assert.equal(air.aq_source_id, null, 'no aqi condition, no air-quality source');
+  rejects(app, () => app.call('watches.update', { id: 'w-0003', patch: { aq_source_id: 'src-aqb' } }), 'invalid_arguments');
+  rejects(app, () => app.call('watches.update', { id: 'w-0003', patch: { conditions: [{ variable: 'aqi', value: 101 }], aq_source_id: 'src-skyline' } }), 'not_found');
+  assert.equal(app.call('watches.update', { id: 'w-0003', patch: { conditions: [{ variable: 'aqi', value: 101 }] } }).watch.aq_source_id, 'src-aqb', 'a new aqi condition takes the account default');
 
   const cancelled = app.call('watches.cancel', { id: 'w-0002' }).watch;
   assert.deepEqual([cancelled.status, cancelled.cancelled_at], ['cancelled', app.now]);
@@ -471,7 +521,7 @@ test('T14 [W4] update and cancel rules and limits', () => {
   assert.equal(app.call('watches.create', { ...HIKE, conditions: pop }).id, 'w-0023');
 });
 
-test('T15 [W4] notices: rule matching, quiet hours, extreme bypass, email copy', () => {
+test('T15 [W4] notices: rule matching, one per alert message, quiet hours and release time, extreme bypass, email copy', () => {
   const app = fixture(), count = notices(app).length;
   app.event(alertIssued('al-0020', at(FRI, '20:05'), { severity: 'minor' }));
   app.event(alertIssued('al-0021', at(FRI, '20:06'), {}, { category: 'fire', zone_ids: ['z-marrow'] }));
@@ -485,34 +535,45 @@ test('T15 [W4] notices: rule matching, quiet hours, extreme bypass, email copy',
   assert.equal(list.length, count + 2, 'one notice per alert message');
   assert.deepEqual([list[1].kind, list[1].message_id, list[1].place_ids], ['alert.updated', 'al-0022-m2', [WREN]]);
   assert.deepEqual([list[0].place_ids, list[0].title, list[0].email_copy], [[WREN, MARROW], 'Flood Watch for Wren Lake (saved as Saturday hike) and 1 more saved place', true]);
+  assert.deepEqual([list[0].state, list[0].release_at], ['released', at(FRI, '20:09')], 'outside quiet hours the release time is the creation time');
   assert.equal(app.data.notices.at(-1).wire.data.subscription_ref, 'rainshadow-maya:pl-wren-lake');
 
+  // Quiet hours are 22:00-07:00 in the account's time zone.
   app.event(alertIssued('al-0024', at(FRI, '23:10')));
   app.event(alertIssued('al-0025', at(FRI, '23:10'), { severity: 'extreme', event: 'Flash Flood Emergency' }));
   app.event(alertUpdated('al-0024', 2, at(FRI, '23:20'), { severity: 'severe' }));
   list = notices(app);
-  assert.deepEqual(list.slice(0, 3).map(n => [n.message_id, n.state, n.release_at, n.released_at, n.email_copy]), [
-    ['al-0024-m2', 'held', at(SAT, '07:00'), null, false],
-    ['al-0025-m1', 'released', null, at(FRI, '23:10'), true],
-    ['al-0024-m1', 'held', at(SAT, '07:00'), null, false],
+  assert.deepEqual(list.slice(0, 3).map(n => [n.message_id, n.state, n.created_at, n.release_at, n.email_copy]), [
+    ['al-0024-m2', 'held', at(FRI, '23:20'), at(SAT, '07:00'), true],
+    ['al-0025-m1', 'released', at(FRI, '23:10'), at(FRI, '23:10'), true],
+    ['al-0024-m1', 'held', at(FRI, '23:10'), at(SAT, '07:00'), true],
   ]);
   assert.deepEqual(app.call('notices.list', { state: 'held' }).notices.map(n => n.id), [list[0].id, list[2].id]);
   assert.equal(app.call('preferences.get').preferences.in_quiet_hours, true);
+  const wires = () => Object.fromEntries(app.data.notices.filter(n => n.wire).map(n => [n.id, n.wire.time]));
+  assert.deepEqual([wires()[list[0].id], wires()[list[1].id], wires()[list[2].id]], [at(SAT, '07:00'), at(FRI, '23:10'), at(SAT, '07:00')], 'the stored wire message is dated at the release time');
 
-  const mark = app.data.activity.length;
+  // Nothing is rewritten when a release time passes: the state is read from it and the clock.
+  const stored = app.data;
   app.advance(at(SAT, '06:59:59'));
   assert.equal(app.call('notices.list', { state: 'held' }).notices.length, 2);
   app.advance(at(SAT, '07:00'));
-  assert.deepEqual(actions(app, mark), ['event:clock.advanced:clock', 'timer:notice.released:' + list[2].id, 'timer:notice.released:' + list[0].id, 'event:clock.advanced:clock']);
-  const released = app.call('notices.list', { since: at(FRI, '23:00') }).notices;
-  assert.deepEqual(released.map(n => [n.state, n.released_at, n.email_copy]), [['released', at(SAT, '07:00'), true], ['released', at(FRI, '23:10'), true], ['released', at(SAT, '07:00'), true]]);
-  assert.equal(app.data.notices.find(n => n.id === list[0].id).wire.time, at(SAT, '07:00'));
+  assert.deepEqual(app.call('notices.list', { state: 'held' }).notices, []);
+  assert.deepEqual(app.call('notices.list', { since: at(FRI, '23:00') }).notices.map(n => [n.state, n.release_at]), [['released', at(SAT, '07:00')], ['released', at(FRI, '23:10')], ['released', at(SAT, '07:00')]]);
+  assert.deepEqual(app.data, stored);
 
-  app.call('preferences.update', { patch: { email_notices: false, quiet_hours: { enabled: false } } });
-  app.event(alertCancelled('al-0024', 3, at(SAT, '23:30')));
-  const quiet = notices(app)[0];
-  assert.deepEqual([quiet.kind, quiet.state, quiet.email_copy, quiet.severity], ['alert.cancelled', 'released', false, 'severe']);
-  assert.equal(app.data.notices.at(-1).wire, undefined);
+  // The email copy is decided when the notice is written, not when it is released.
+  app.call('preferences.update', { patch: { email_notices: false } });
+  app.event(alertUpdated('al-0024', 3, at(SAT, '23:30'), { severity: 'severe' }));
+  const silent = notices(app)[0];
+  assert.deepEqual([silent.message_id, silent.state, silent.release_at, silent.email_copy], ['al-0024-m3', 'held', at(SUN, '07:00'), false]);
+  app.call('preferences.update', { patch: { email_notices: true, quiet_hours: { enabled: false } } });
+  app.advance(at(SUN, '07:00'));
+  assert.deepEqual([notices(app)[0].state, notices(app)[0].email_copy, app.data.notices.at(-1).wire], ['released', false, undefined]);
+  assert.equal(app.call('notices.list', { state: 'held' }).notices.length, 0, 'turning quiet hours off does not move a release time that was already set');
+  app.event(alertCancelled('al-0024', 4, at(SUN, '23:30')));
+  const last = notices(app)[0];
+  assert.deepEqual([last.kind, last.state, last.release_at, last.email_copy, last.severity], ['alert.cancelled', 'released', at(SUN, '23:30'), true, 'severe']);
 
   assert.deepEqual(app.call('notices.list', { kind: 'watch.triggered' }).notices.map(n => n.id), ['ntc-0003']);
   const page = app.call('notices.list', { limit: 5 });
@@ -521,43 +582,91 @@ test('T15 [W4] notices: rule matching, quiet hours, extreme bypass, email copy',
   rejects(app, () => app.call('notices.list', { cursor: 'x' }), 'invalid_arguments');
 });
 
-test('T16 [all] timers due before an event run first, in due-time then ID order', () => {
-  const app = fixture();
-  app.call('preferences.update', { patch: { quiet_hours: { start: '20:00', end: '06:00' } } });
-  app.event(alertIssued('al-0030', at(FRI, '20:10')));
-  const early = app.call('watches.create', { id: WREN, start: at(FRI, '21:00'), end: at(SAT, '05:00'), conditions: [{ variable: 'pop', value: 40 }] }).id;
-  const same = app.call('watches.create', { id: WREN, start: at(FRI, '21:00'), end: at(SAT, '06:00'), conditions: [{ variable: 'pop', value: 5 }] }).id;
-  const held = notices(app)[0];
-  assert.deepEqual([held.state, held.release_at], ['held', at(SAT, '06:00')]);
-  const mark = app.data.activity.length, evaluation = app.call('watches.get', { id: same }).watch.evaluation;
-  app.event(issued('iss-pfo-wren-9', at(SAT, '08:00'), [[9, { pop: 95 }], [10, { pop: 95 }]]));
-  const rows = app.data.activity.slice(mark);
-  assert.deepEqual(rows.map(a => [a.actor, a.action, a.object_id, a.at]), [
-    ['timer', 'watch.ended', early, at(SAT, '05:00')],
-    ['timer', 'notice.released', held.id, at(SAT, '06:00')],
-    ['timer', 'watch.ended', same, at(SAT, '06:00')],
-    ['event', 'forecast.issued', 'iss-pfo-wren-9', at(SAT, '08:00')],
-    ['event', 'watch.status_changed', 'w-0002', at(SAT, '08:00')],
-    ['event', 'notice.created', 'ntc-0010', at(SAT, '08:00')],
-  ]);
-  assert.ok(rows.every(a => a.event_id === 'ev-iss-pfo-wren-9'));
-  assert.deepEqual(app.call('watches.get', { id: same }).watch.evaluation, evaluation, 'a watch that ended before the event is not evaluated by it');
-  assert.equal(app.call('watches.get', { id: 'w-0002' }).watch.status, 'triggered');
+test('T16 [all] the platform clock: time moves with no App event', () => {
+  // app.advance() stands for Core's env.advance_time here: it moves the clock and runs no App
+  // code. The same sequence runs against the real operation in tests/mcp.integration.cjs.
+  const app = fixture(), pop = [{ variable: 'pop', value: 40 }];
+  app.event(alertIssued('al-0030', at(FRI, '23:10')));
+  const held = notices(app)[0], status = () => app.call('alerts.get', { id: 'al-0030' }).alert.status;
+  assert.deepEqual([held.state, held.release_at, held.email_copy, status()], ['held', at(SAT, '07:00'), true, 'upcoming']);
+  for (let n = 0; n < 18; n++) app.call('watches.create', { ...HIKE, conditions: pop });
+  rejects(app, () => app.call('watches.create', { ...HIKE, conditions: pop }), 'limit_exceeded');
+  rejects(app, () => app.call('places.remove', { id: WREN }), 'place_in_use');
+  const sent = {};
+  assert.deepEqual(sender.pending(app.snapshot(), sent), [], 'seed notices are history and a held notice is not due');
+
+  const stored = app.data, moves = [];
+  const move = to => { app.advance(to); moves.push(to); assert.deepEqual(app.data, stored, 'moving the clock to ' + to + ' changes no business record'); };
+  assert.throws(() => app.advance(at(FRI, '23:00')), { code: 'invalid_time' });
+  move(at(SAT, '06:59:59'));
+  assert.equal(notices(app)[0].state, 'held');
+  move(at(SAT, '07:00'));
+  assert.equal(notices(app)[0].state, 'released', 'a held notice reads released once the clock reaches its release time');
+  assert.deepEqual(sender.pending(app.snapshot(), sent).map(n => [n.id, n.wire.id, n.wire.time]), [[held.id, held.id, at(SAT, '07:00')]], 'and the sender picks it up');
+
+  move(at(SAT, '12:59:59'));
+  assert.equal(app.call('watches.get', { id: 'w-0002' }).watch.status, 'clear');
+  move(at(SAT, '13:00'));
+  assert.equal(app.call('watches.get', { id: 'w-0002' }).watch.status, 'ended', 'a watch past its window reads ended');
+  assert.deepEqual(app.call('watches.list').watches.map(w => w.id), ['w-0003']);
+  assert.equal(app.call('watches.list', { include_closed: true }).watches.filter(w => w.status === 'ended').length, 20);
+  rejects(app, () => app.call('watches.update', { id: 'w-0002', patch: { label: 'Too late' } }), 'invalid_state');
+  rejects(app, () => app.call('watches.cancel', { id: 'w-0002' }), 'invalid_state');
+  assert.equal(status(), 'upcoming');
+  move(at(SAT, '18:00'));
+  assert.equal(status(), 'active');
+  move(at(SUN, '02:00'));
+  assert.equal(status(), 'expired');
+  rejects(app, () => app.call('alerts.acknowledge', { id: 'al-0030', message_id: 'al-0030-m1' }), 'invalid_state');
+
+  // Writes use the same derivation: ended watches hold no place and do not count towards the limit.
+  assert.equal(app.call('places.list').places.find(p => p.id === WREN).open_watches, 0);
+  assert.equal(app.call('watches.create', { id: WREN, start: at(SUN, '10:00'), end: at(SUN, '13:00'), conditions: pop }).id, 'w-0022', 'the limit counts open watches only');
+  app.call('watches.cancel', { id: 'w-0022' });
+  assert.deepEqual(app.call('places.remove', { id: WREN }), { id: WREN, removed: true });
+  assert.deepEqual(app.data.activity.slice(stored.activity.length).map(a => a.actor + ':' + a.action), ['agent:watches.create', 'agent:watches.cancel', 'agent:places.remove'], 'no activity row for a time-driven change');
+
+  // The sender adapter with stand-in clients: selection, the request it builds, and its log.
+  // The real Messaging and Mail flow is tests/mail.integration.cjs.
+  return (async () => {
+    const before = app.data;
+    const published = [], source = { call: async name => (name === 'env.snapshot' ? { status: 'ok', snapshot: app.snapshot() } : { status: 'permission_denied' }) };
+    const router = { call: async (name, args) => { published.push([name, args.request_id, args.message.id]); return { status: 'committed', event_id: 'mail-1', target: { app_id: 'mail', account_id: 'mail-maya' }, committed_at: 'x' }; } };
+    const first = await sender.publishReleased({ source, router, sent });
+    assert.deepEqual([first.stage, published, Object.keys(sent)], ['delivered', [['router.publish', 'rainshadow:1:' + held.id, held.id]], [held.id]]);
+    const again = await sender.publishReleased({ source, router, sent });
+    assert.deepEqual([again.stage, again.results.length, published.length], ['nothing_pending', 0, 1], 'a notice in the sender log is not published twice');
+    const refusing = { call: async () => ({ status: 'rejected', code: 'recipient_not_authorized' }) };
+    const refused = await sender.publishReleased({ source, router: refusing, sent: {} });
+    assert.deepEqual([refused.stage, refused.results.length, Object.keys(refused.sent)], ['router_rejected', 1, []], 'a rejected delivery is reported and not logged as sent');
+    assert.deepEqual(app.data, before, 'the sender writes nothing back');
+  })();
 });
 
-test('T17 [all] Core contracts on the public runtime (real MCP)', t => {
-  if (!publicRuntime()) return t.skip('public runtime not present in this copy; run tests/mcp.integration.cjs from the checkout');
-  const run = spawnSync(process.execPath, [path.join(__dirname, 'mcp.integration.cjs')], { encoding: 'utf8', timeout: 120000 });
+test('T16b [all] a seed notice that is still held when the seed is loaded is published after its release time', () => {
+  const seed = seedCopy(), prior = seed.notices.at(-1);
+  seed.notices.push({ ...prior, id: 'ntc-0009', seq: prior.seq + 1000, created_at: at(FRI, '19:30'), release_at: at(SAT, '07:00'), title: prior.title + ' (held)', wire: { ...prior.wire, id: 'ntc-0009', time: at(SAT, '07:00') } });
+  const app = fixture({ seed });
+  assert.equal(notices(app)[0].state, 'held');
+  assert.deepEqual(sender.pending(app.snapshot()), []);
+  app.advance(at(SAT, '07:00'));
+  assert.deepEqual(sender.pending(app.snapshot()).map(n => n.id), ['ntc-0009'], 'history that was already released at load time stays history');
+});
+
+const RUNTIME = process.env.PALE_RUNTIME_ROOT;
+test('T17 [all] Core contracts and the real env.advance_time on the public runtime (real MCP)', t => {
+  if (!RUNTIME) return t.skip('set PALE_RUNTIME_ROOT to the runtime directory of a public checkout, or run tests/mcp.integration.cjs --runtime DIR');
+  const run = spawnSync(process.execPath, [path.join(__dirname, 'mcp.integration.cjs'), '--runtime', RUNTIME], { encoding: 'utf8', timeout: 180000 });
   assert.equal(run.status, 0, run.stdout + run.stderr);
 });
 
 test('T15b [W4] Rainshadow -> Mail through Messaging on the public runtime (real MCP)', t => {
-  if (!publicRuntime() || !fs.existsSync(path.join(publicRuntime(), '../examples/apps/mail/app.json'))) return t.skip('public runtime with the Mail reference App not present in this copy; run tests/mail.integration.cjs from the checkout');
-  const run = spawnSync(process.execPath, [path.join(__dirname, 'mail.integration.cjs')], { encoding: 'utf8', timeout: 120000 });
+  if (!RUNTIME) return t.skip('set PALE_RUNTIME_ROOT to the runtime directory of a public checkout that holds this package and the Mail package, or run tests/mail.integration.cjs --runtime DIR');
+  const run = spawnSync(process.execPath, [path.join(__dirname, 'mail.integration.cjs'), '--runtime', RUNTIME], { encoding: 'utf8', timeout: 180000 });
   assert.equal(run.status, 0, run.stdout + run.stderr);
 });
 
-test('T18 [all] seed validation failures; one activity row per write, event and timer effect', () => {
+test('T18 [all] seed validation failures; one activity row per write, event and event effect, none for a time-driven change', () => {
   const app = fixture(), bad = change => { const seed = seedCopy(); change(seed); assert.throws(() => plugin.validateSeed(app.ctx, seed), { code: 'invalid_seed' }); };
   plugin.validateSeed(app.ctx, seedCopy());
   bad(s => { s.account_id = 'unbound-account'; });
@@ -584,6 +693,8 @@ test('T18 [all] seed validation failures; one activity row per write, event and 
   bad(s => { s.alerts[1].messages[1].sent_at = s.alerts[1].messages[0].sent_at; });
   bad(s => { s.alerts[0].zone_ids = ['z-nowhere']; });
   bad(s => { s.preferences.default_source_id = 'src-aqb'; });
+  bad(s => { s.preferences.default_air_source_id = 'src-pfo'; });
+  bad(s => { s.preferences.default_air_source_id = 'src-none'; });
   bad(s => { s.preferences.timezone = 'Nowhere/Land'; });
   bad(s => { s.preferences.quiet_hours.end = s.preferences.quiet_hours.start; });
   bad(s => { s.saved_places.push({ ...s.saved_places[0] }); });
@@ -592,13 +703,25 @@ test('T18 [all] seed validation failures; one activity row per write, event and 
   bad(s => { s.acknowledgements.push({ ...s.acknowledgements[0] }); });
   bad(s => { s.watches[0].source_id = 'src-aqb'; });
   bad(s => { s.watches[2].aq_source_id = 'src-pfo'; });
+  bad(s => { delete s.watches[2].aq_source_id; });
+  bad(s => { s.watches[0].aq_source_id = 'src-aqb'; });
   bad(s => { s.watches[0].end = s.watches[0].start; });
   bad(s => { s.watches[0].conditions[0].unit = 'F'; });
   bad(s => { s.watches[0].evaluation.issuance.id = 'iss-none'; });
   bad(s => { s.notices[2].object.id = 'w-9999'; });
   bad(s => { s.notices[0].message_id = 'al-0002-m1'; });
   bad(s => { s.notices[0].place_ids = ['pl-nowhere']; });
+  bad(s => { s.notices[4].release_at = at('2026-11-19', '23:00', '-08:00'); });
   bad(s => { s.activity[1].seq = s.activity[0].seq; });
+  // Shapes the seed schema refuses: time-based state is never stored.
+  const refused = change => { const seed = seedCopy(); change(seed); assert.throws(() => fixture({ seed }), { code: 'schema_mismatch' }); };
+  refused(s => { delete s.notices[0].release_at; });
+  refused(s => { s.notices[0].released_at = s.notices[0].release_at; });
+  refused(s => { s.watches[0].ended_at = s.watches[0].end; });
+  refused(s => { s.activity[0].actor = 'timer'; });
+  refused(s => { delete s.preferences.default_air_source_id; });
+  const noAir = seedCopy(); noAir.preferences.default_air_source_id = null;
+  plugin.validateSeed(app.ctx, noAir);
 
   const rows = () => app.data.activity.length;
   let n = rows();
@@ -615,15 +738,28 @@ test('T18 [all] seed validation failures; one activity row per write, event and 
     assert.deepEqual([last.actor, last.action, last.object_id, last.request_id, last.at, last.seq], ['agent', name, result.id, 'req-' + name, app.now, n]);
   }
   rejects(app, () => app.call('places.save', { id: 'pl-nowhere' }), 'not_found');
-  app.advance(at(FRI, '20:30'), 'ev-clock-1');
-  assert.equal(rows(), ++n);
+  assert.equal(rows(), n, 'a rejected call writes no row');
+  app.advance(at(FRI, '20:30'));
+  assert.equal(rows(), n, 'moving the clock writes no row');
   app.event(alertIssued('al-0040', at(FRI, '20:40'), {}, { zone_ids: ['z-tamsin'] }));
   assert.equal(rows(), ++n, 'an event with no further effect writes one row');
   app.event(alertIssued('al-0041', at(FRI, '20:50')));
   assert.equal(rows(), n += 2, 'the event and the notice it creates');
   assert.deepEqual(app.data.activity.slice(-2).map(a => [a.actor, a.action, a.event_id]), [['event', 'alert.issued', 'ev-al-0041'], ['event', 'notice.created', 'ev-al-0041']]);
+  app.call('watches.create', { ...HIKE, conditions: [{ variable: 'pop', value: 40 }], request_id: 'req-second-watch' });
+  n = rows();
+  app.event(issued('iss-pfo-wren-9', at(FRI, '21:00'), [[10, {}], [11, {}], [12, { pop: 45 }]]));
+  assert.deepEqual(app.data.activity.slice(n).map(a => [a.actor, a.action, a.object_id, a.event_id, a.at]), [
+    ['event', 'forecast.issued', 'iss-pfo-wren-9', 'ev-iss-pfo-wren-9', at(FRI, '21:00')],
+    ['event', 'watch.status_changed', 'w-0002', 'ev-iss-pfo-wren-9', at(FRI, '21:00')], ['event', 'notice.created', 'ntc-0010', 'ev-iss-pfo-wren-9', at(FRI, '21:00')],
+    ['event', 'watch.status_changed', 'w-0005', 'ev-iss-pfo-wren-9', at(FRI, '21:00')], ['event', 'notice.created', 'ntc-0011', 'ev-iss-pfo-wren-9', at(FRI, '21:00')],
+  ], 'one row for the event and one for each of its effects');
+  n = rows();
+  app.advance(at(SUN, '12:00'));
+  assert.deepEqual([rows(), app.call('watches.list').watches.length, app.call('watches.list', { include_closed: true }).watches.filter(w => w.status === 'ended').length], [n, 0, 4], 'watches ended by time alone leave no row');
+  assert.ok(app.data.activity.every(a => ['agent', 'event'].includes(a.actor)));
   const stored = app.data;
-  assert.equal(stored.watches.at(-1).seq, stored.activity.find(a => a.action === 'watches.create' && a.object_id === 'w-0004').seq);
+  assert.equal(stored.watches.find(w => w.id === 'w-0004').seq, stored.activity.find(a => a.action === 'watches.create' && a.object_id === 'w-0004').seq);
   assert.equal(stored.notices.at(-1).seq, stored.activity.at(-1).seq);
 });
 
@@ -637,14 +773,54 @@ test('contracts, fixture and declarations are in step', () => {
   assert.deepEqual(tools.map(t => t.name.slice(11)).sort(), require('../src/operations.cjs').tools.slice().sort());
   assert.deepEqual([tools.filter(t => t.read_only).length, tools.filter(t => !t.read_only).length], [13, 8]);
   assert.deepEqual(declared.events.accepts.map(e => e.type), manifest.event_types);
+  assert.deepEqual(manifest.event_types.map(e => e.slice(11)), ['forecast.issued', 'observation.recorded', 'alert.issued', 'alert.updated', 'alert.cancelled'], 'five events and no clock event');
+  assert.deepEqual(require('../schemas/events.schema.json').oneOf.map(e => e.properties.operation.const), manifest.event_types);
   assert.deepEqual(declared.messaging.receives, []);
   assert.deepEqual(declared.messaging.publishes.map(p => [p.channel, p.schema_id, p.status]), [['channel.email', 'urn:pale:email-message:2', 'implemented']]);
   const wire = scenarioWire();
   assert.deepEqual([wire.specversion, wire.id, wire.source, wire.type, wire.dataschema, wire.time, wire.data.channel, wire.data.recipient, wire.data.source_object, wire.data.subscription_ref, wire.data.content.asset_ids],
     ['1.0', 'ntc-0009', 'urn:pale:app:rainshadow:account:rainshadow-maya', 'org.pale.mail.notification.v1', 'urn:pale:email-payload:1', at(FRI, '20:30'), 'channel.email', { kind: 'person_ref', id: 'person-maya' },
       { app_id: 'rainshadow', account_id: 'rainshadow-maya', object_type: 'watch', object_id: 'w-0002' }, 'rainshadow-maya:pl-wren-lake', []]);
+  // Every stored wire message passes the package's copy of Mail's wire schema (urn:pale:email-message:2).
+  const wireSchema = require('../schemas/router-message.schema.json'), wireValid = require('./schema-validator.cjs').compile(wireSchema, path.join(__dirname, '../schemas'));
+  assert.equal(wireSchema.$id, 'urn:pale:email-message:2');
+  const quiet = fixture();
+  quiet.event(alertIssued('al-0030', at(FRI, '23:10')));
+  const heldWire = quiet.data.notices.at(-1).wire;
+  assert.equal(heldWire.time, at(SAT, '07:00'), 'a held notice is dated at its release time');
+  for (const candidate of [wire, heldWire, ...seedCopy().notices.map(n => n.wire)]) assert.ok(wireValid(candidate), 'wire message ' + candidate.id + ' matches Mail\'s schema');
+  const noRecipient = structuredClone(wire); delete noRecipient.data.recipient;
+  const otherType = { ...structuredClone(wire), type: 'org.pale.other.v1' };
+  assert.deepEqual([wireValid(noRecipient), wireValid(otherType)], [false, false], 'broken variants fail');
   assert.equal(require('../fixtures/clock.json').initial_time, builder.CLOCK);
   assert.equal(require('../contribution/dataset.json').expected_counts.records, plugin.records(seedCopy()).length);
   const event = scenario();
   assert.ok(manifest.event_types.includes(event.operation));
+});
+
+test('the package runs on its own: no import or file path leaves its folder', () => {
+  const root = path.resolve(__dirname, '..'), files = [];
+  const walk = dir => { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const f = path.join(dir, e.name); if (e.isDirectory()) walk(f); else if (/\.(cjs|js|mjs)$/.test(e.name)) files.push(f); } };
+  walk(root);
+  assert.ok(files.length >= 20);
+  for (const file of files) {
+    const text = fs.readFileSync(file, 'utf8'), rel = path.relative(root, file);
+    for (const m of text.matchAll(/require\(\s*(['"`])([^'"`]+)\1\s*\)/g)) {
+      const target = m[2];
+      if (target.startsWith('node:')) continue;
+      assert.ok(target.startsWith('.'), rel + ' requires ' + target + ': only Node built-ins and package files are allowed');
+      const resolved = path.resolve(path.dirname(file), target);
+      assert.ok(resolved === root || resolved.startsWith(root + path.sep), rel + ' requires a file outside the package: ' + target);
+    }
+    // A literal path may climb at most to the package root (the file's own depth below it).
+    const depth = rel.split(path.sep).length - 1;
+    for (const m of text.matchAll(/['"`](\.\.(?:\/[^'"`]*)?)['"`]/g)) {
+      const parts = m[1].split('/'), climbs = parts.findIndex(x => x !== '..');
+      assert.ok((climbs === -1 ? parts.length : climbs) <= depth, rel + ' has a path that leaves the package: ' + m[0]);
+    }
+  }
+  // The business entrypoint and everything under src/ never touch the file system, the network or a child process.
+  for (const file of files.filter(f => path.relative(root, f).startsWith('src' + path.sep) || path.relative(root, f) === 'plugin.cjs')) {
+    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /node:(fs|child_process|net|http|https|dgram|worker_threads)|Date\.now\(|new Date\(\)/, path.relative(root, file));
+  }
 });

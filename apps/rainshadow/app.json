@@ -26,8 +26,7 @@
     "rainshadow.observation.recorded",
     "rainshadow.alert.issued",
     "rainshadow.alert.updated",
-    "rainshadow.alert.cancelled",
-    "rainshadow.clock.advanced"
+    "rainshadow.alert.cancelled"
   ],
   "capabilities": {
     "modes": [
@@ -41,7 +40,7 @@
     "Synthetic forecasts, observations and alerts only: no weather model, no live weather service and no scoring of forecast accuracy.",
     "One account per App instance; no shared household.",
     "MCP only: no GUI, maps, radar or imagery.",
-    "The App clock moves only through Infra events; rainshadow.clock.advanced stands in for a platform clock.",
+    "Time is the environment's: the App has no clock event, timer or scheduler. Time-based states (a held notice, an ended watch, an alert's status) are derived from the supplied virtual time.",
     "Notices reach Mail only through an Infra-run sender and Messaging; the App itself delivers nothing.",
     "No attachments or media: resources are not used."
   ],

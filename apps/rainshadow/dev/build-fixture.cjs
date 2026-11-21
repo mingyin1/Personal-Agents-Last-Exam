@@ -114,8 +114,9 @@ const regionHumidity = (p, n) => (p.tz === A ? 38 : 71) + n * 3;
 const steps = [];
 const push = (t, run) => steps.push({ t, order: steps.length, run });
 const event = (t, tz, operation, payload) => push(t, (app, id) => app.event({ event_id: id, at: isoAt(t, tz), operation: 'rainshadow.' + operation, payload }));
-// An agent action happens in a session that Infra opens by moving the clock to that time.
-const agent = (t, tz, name, args) => push(t, (app, id) => { app.advance(isoAt(t, tz), id + '-clock'); app.call(name, { ...args, request_id: id.replace('ev', 'req') }); });
+// An agent action happens in a session that Infra opens by moving the clock to that time
+// (Core's env.advance_time on a real host; no App code runs and nothing is recorded).
+const agent = (t, tz, name, args) => push(t, (app, id) => { app.advance(isoAt(t, tz)); app.call(name, { ...args, request_id: id.replace('ev', 'req') }); });
 const message = (id, type, t, tz, fields) => ({ message_id: id, type, sent_at: isoAt(t, tz), ...fields });
 
 for (const key of Object.keys(P)) {
@@ -184,7 +185,7 @@ function base() {
   const all = ['flood', 'storm', 'winter', 'wind', 'temperature', 'fire', 'air_quality', 'other'];
   return {
     account_id: 'rainshadow-maya', owner_person_id: 'person-maya', zones, places, sources, issuances: [], observations: [], alerts: [],
-    preferences: { units: 'metric', default_source_id: 'src-pfo', timezone: A, quiet_hours: { enabled: true, start: '22:00', end: '07:00' }, email_notices: true },
+    preferences: { units: 'metric', default_source_id: 'src-pfo', default_air_source_id: 'src-aqb', timezone: A, quiet_hours: { enabled: true, start: '22:00', end: '07:00' }, email_notices: true },
     saved_places: [
       { place_id: P.wren.id, label: 'Saturday hike', alert_rule: { categories: all, min_severity: 'moderate', paused: false }, saved_at: iso('2026-11-10', '19:20', A) },
       { place_id: P.marrow.id, label: 'Mom\'s house', alert_rule: { categories: ['flood', 'storm', 'wind', 'temperature', 'air_quality'], min_severity: 'minor', paused: false }, saved_at: iso('2026-11-10', '19:24', A) },
@@ -199,7 +200,7 @@ const CLOCK = iso(FRI, '20:00', A);
 function build() {
   const app = fixture({ seed: base(), now: iso(WED, '08:00', A), binding });
   steps.sort((a, b) => a.t - b.t || a.order - b.order).forEach((step, i) => step.run(app, 'seed-ev-' + String(i + 1).padStart(3, '0')));
-  app.advance(CLOCK, 'seed-ev-clock');
+  app.advance(CLOCK);
   const data = app.data;
   const count = { zones: 8, places: 6, sources: 3, issuances: 54, observations: 12, alerts: 6, saved_places: 3, watches: 3, notices: 8 };
   for (const [key, n] of Object.entries(count)) if (data[key].length !== n) throw Error('Fixture count drift: ' + key + ' = ' + data[key].length + ', expected ' + n);

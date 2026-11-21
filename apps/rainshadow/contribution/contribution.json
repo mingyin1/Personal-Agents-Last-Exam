@@ -206,11 +206,6 @@
         "type": "rainshadow.alert.cancelled",
         "schema_ref": "schemas/events.schema.json",
         "status": "implemented"
-      },
-      {
-        "type": "rainshadow.clock.advanced",
-        "schema_ref": "schemas/events.schema.json",
-        "status": "implemented"
       }
     ],
     "emits": [],
